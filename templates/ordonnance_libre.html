@@ -1,0 +1,248 @@
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Ordonnance excelsis</title>
+
+    <style>
+        .facture-excelsis-page-container {
+            background: no-repeat center url("https://i.postimg.cc/L8qnY3jx/bg-excelsis.png");
+            height: 100%;
+            width: 60%;
+            margin: auto;
+            padding: 50px 30px;
+            background-color: #FFFFFF;
+        }
+        .facture-excelsis-date-creation {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 800;
+            font-size: 14px;
+            line-height: 26px;
+            text-align: right;
+            color: #4A4A68;
+        }
+        .facture-excelsis-infos-header-container {
+            width: max-content;
+        }
+        .facture-excelsis-infos-header-doctor-name {
+            font-family: 'Montserrat';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 26px;
+            color: #000000;
+        }
+        .facture-excelsis-infos-header-doctor-specialite {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 800;
+            font-size: 12px;
+            line-height: 26px;
+            color: #000000;
+        }
+        .facture-excelsis-infos-header-divider {
+            color: #D9D9D9;
+            margin: 6px;
+        }
+        .facture-excelsis-infos-header-doctor-adresse {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 800;
+            font-size: 12px;
+            line-height: 26px;
+            text-align: left;
+            color: #8C8CA2;
+        }
+        .facture-excelsis-custom-divider {
+            margin: 55px 0px;
+        }
+        .facture-excelsis-infos-patient-age {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 16px;
+            color: rgba(24, 24, 25, 0.9);
+        }
+        .facture-excelsis-infos-patient-name {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 18px;
+            line-height: 21px;
+            color: rgba(24, 24, 25, 0.9);
+        }
+        .facture-excelsis-infos-patient-id {
+            font-family: 'DM Sans';
+            font-style: normal;
+            font-weight: 700;
+            font-size: 11.6335px;
+            line-height: 15px;
+            color: rgba(0, 0, 0, 0.4);
+        }
+        .facture-excelsis-prescription-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .facture-excelsis-prescription-label {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 140%;
+            color: #4A4A68;
+        }
+        .facture-excelsis-prescription-value {
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 140%;
+            color: #4A4A68;
+        }
+        .facture-excelsis-prescription-sous-label {
+            font-family: 'Roboto';
+            font-style: italic;
+            font-weight: 800;
+            font-size: 16px;
+            line-height: 26px;
+            text-align: left;
+            color: #8C8CA2;
+        }
+        .facture-excelsis-signature-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .facture-excelsis-signature {
+            width: 114px;
+        }
+        .facture-excelsis-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .facture-excelsis-logo {
+            width: 80px;
+        }
+        .facture-excelsis-btn-actions-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .facture-excelsis-btn-actions {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 12px 16px;
+            background: #FFFFFF;
+            border: 1px solid #68D5C4;
+            border-radius: 5px;
+
+            font-family: 'Roboto';
+            font-style: normal;
+            font-weight: 800;
+            font-size: 12px;
+            line-height: 14px;
+            letter-spacing: 0.03em;
+            color: #4A4A68;
+        }
+        .facture-excelsis-btn-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        @media(max-width:768px) {
+            .facture-excelsis-page-container {
+                width: 80%;
+            }
+        }
+        @media(max-width:425px) {
+            .facture-excelsis-btn-container,
+            .facture-excelsis-signature-container {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="facture-excelsis-page-container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="facture-excelsis-infos-header-container">
+                    <div class="facture-excelsis-infos-header-doctor-name">Docteur {{ordonnance.praticien.prenom}} {{ordonnance.praticien.nom}}</div>
+                    <div class="facture-excelsis-infos-header-doctor-specialite">{{ordonnance.praticien.specialite.nom}}</div>
+                    <hr class="facture-excelsis-infos-header-divider">
+                    <div class="facture-excelsis-infos-header-doctor-adresse">{{ordonnance.praticien.adresse}}</div>
+                    <!-- <div class="facture-excelsis-infos-header-doctor-adresse">{{ordonnance.praticien.adresse}}</div> -->
+                    <div class="facture-excelsis-infos-header-doctor-adresse">Tél / {{ordonnance.praticien.telephone}}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="facture-excelsis-date-creation">{{ordonnance.praticien.ville.upper}}, Le {{ today }}
+                </div>
+            </div>
+        </div>
+
+        <div class="facture-excelsis-custom-divider"></div>
+
+        <div class="facture-excelsis-infos-patient-container">
+            <div class="d-flex gap-4 align-items-center mb-2">
+                <div class="facture-excelsis-infos-patient-name">{{ordonnance.prenom}} {{ordonnance.nom}}</div>
+                <div class="facture-excelsis-infos-patient-id">ID {{ordonnance.id}}</div>
+            </div>
+            <div class="facture-excelsis-infos-patient-age">
+                {{ordonnance.age}} ans
+                {% if constante %}
+                    ,{{constante.poids}}kg 
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="facture-excelsis-custom-divider"></div>
+        {% for item in ordonnance.details.all %}
+            <div class="facture-excelsis-prescription-container mb-3">
+                <div class="d-flex flex-column">
+                    <div class="facture-excelsis-prescription-label">{{ item.prescription }}</div>
+                    <div class="facture-excelsis-prescription-sous-label">{{ item.commentaire }}</div>
+                </div>
+                <div class="facture-excelsis-prescription-value">Application {{item.posologie}}</div>
+            </div>
+        {% endfor %}
+
+
+        <div class="facture-excelsis-custom-divider"></div>
+        <div class="facture-excelsis-custom-divider"></div>
+        <div class="facture-excelsis-custom-divider"></div>
+
+        <div class="facture-excelsis-signature-container mb-3">
+            <img src="data:image/png;base64, {{image_data}}" alt="signature" class="facture-excelsis-signature">
+        </div>
+        <div class="facture-excelsis-logo-container mb-3">
+            <img src="https://i.postimg.cc/D0Kq5YPf/logo-facture.png" alt="logo excelsis" class="facture-excelsis-logo">
+        </div>
+
+        <div class="facture-excelsis-custom-divider"></div>
+        <div class="facture-excelsis-custom-divider"></div>
+
+        <!-- <div class="facture-excelsis-btn-container">
+            <div class="facture-excelsis-btn-actions-container">
+                <button class="btn facture-excelsis-btn-actions">Modifier</button>
+                <button class="btn facture-excelsis-btn-actions">Imprimer</button>
+                <button class="btn facture-excelsis-btn-actions">Enregistrer</button>
+            </div>
+        </div> -->
+        
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+</body>
+</html>
+
