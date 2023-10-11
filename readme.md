@@ -26,14 +26,12 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
+  <a href="https://github.com/VolkenoMakers/MYAPP-django"></a>
 
-  <h3 align="center">CRYPTA DJANGO API</h3>
+  <h3 align="center">MYAPP DJANGO API</h3>
 
   <p align="center">
-    A project for accountants.
+    A project for hospitals and medical offices.
     <br />
   </p>
 </div>
@@ -55,12 +53,8 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#deployments">Deployment</a></li>
+
   </ol>
 </details>
 
@@ -68,19 +62,8 @@
 
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
-
-Here's why:
-
-- Your time should be focused on creating something amazing. A project that solves a problem and helps others
-- You shouldn't be doing the same tasks over and over like creating a README from scratch
-- You should implement DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
-
-Use the `BLANK_README.md` to get started.
+[![MYAPP][product-screenshot]](https://MYAPP-app.withvolkeno.com/)
+A project for hospitals and medical offices.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -104,12 +87,11 @@ This section should list any major frameworks/libraries used to bootstrap your p
 
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
+Instructions on setting up your project locally.
 To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
+List things you need to use the software and how to install them.
 
 #### 1. Install python in function of your system.
 
@@ -145,7 +127,7 @@ _Below is an example of how you can instruct your audience on installing and set
 
 1. Clone the repo
    ```sh
-   git clone https://gitlab.com/volkeno/crypta-django.git
+   git clone https://gitlab.com/volkeno/MYAPP-django.git
    ```
 2. Install required python packages
 
@@ -168,113 +150,59 @@ The api should now be running at http://127.0.0.1:8000/
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-## Troubleshooting
 
-If there is any problem during the installation of the python package, just install each them one by one using pip install package_name.
-The most important packages are django, djangorestframework, djangorestframework-jwt and mixer.
+## DEPLOYMENT
 
-## Docker(for deployment)
+### 1. Configure nginx. Go sur  `/etc/nginx/sites-enabled/` and create a file named `MYAPP-django-dev.conf` and the configuration bellow:
+Ici c'est la configuration du nginx à mettre sur le serveur . Le fichier docker-compose.yml est déjà configuré et se trouve à la racine du projet.`5083` est le port dans le fichier dans l'environnement `dev`. En production au lieu  du port `5083`, utiliser le port `5084`
 
-<!-- USAGE EXAMPLES -->
+```  server {
+       server_name  MYAPP-api.withvokeno.com www.MYAPP-api.withvokeno.com;
+       location / {
+       proxy_pass http://127.0.0.1:5083;
+       proxy_set_header Host $host;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+       client_max_body_size 1000M;
+       proxy_connect_timeout 300;
+       proxy_send_timeout 300;
+       proxy_read_timeout 300;
+       uwsgi_read_timeout 300;
 
-```sh
-docker-compose -f docker-compose.prod.yml up -d --build
+   }
+}
 ```
 
-```sh
-docker-compose -f docker-compose.prod.yml exec web python manage.py migrate --noinput
-```
+###  2. Install `docker-compose` on your server. Ici c'est au cas oû `docker-compose` ne serait pas isntallé.
 
-```sh
-docker-compose -f docker-compose.prod.yml exec web python manage.py collectstatic --no-input --clear
-```
+    a) sudo curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 
-## Usage
+    b). sudo chmod +x /usr/local/bin/docker-compose
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+    c).  `docker-compose --version`
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+###  3. Clone project and move on dev branch:
+Le fichier docker-compose.yml étant déjà configuré donc il faudra cloner le code source en éxécutant ces commandes et suivre les instructions après cette étape
+   1. `git clone https://github.com/VolkenoMakers/MYAPP-django`
+   2. `cd MYAPP-django`
+   3. `git checkout dev`
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+### 4. Create file `.env` and copy content `.env.example` in your new file `.env`
+### 5. Run this command to build the project : `docker-compose -f docker-compose.prod.yml  up -d --build`
+### 6. Run test `docker-compose -f docker-compose.prod.yml exec -T web python manage.py test`
+### 7. Migrate db `docker-compose -f docker-compose.prod.yml exec -T web python manage.py migrate`
+### 8. Deploy css `docker-compose -f docker-compose.prod.yml exec -T web python manage.py collectstatic`
+### 9. Create admin superuser  `docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser`
 
-<!-- ROADMAP -->
 
-## Roadmap
-
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-  - [ ] Chinese
-  - [ ] Spanish
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- CONTRIBUTING -->
-
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- LICENSE -->
-
-## License
-
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- CONTACT -->
-
-## Contact
-
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
-
-Project Link: [https://gitlab.com/volkeno/crypta-django](https://gitlab.com/volkeno/crypta-django)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- ACKNOWLEDGMENTS -->
-
-## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-- [django-softdelete](https://choosealicense.com)
-- [django-safedelete](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-- [reportlab](https://flexbox.malven.co/)
-- [uritemplate](https://grid.malven.co/)
-- [xhtml2pdf](https://shields.io)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-
-[contributors-shield]: https://gitlab.com/volkeno/crypta-django
-[contributors-url]: https://gitlab.com/volkeno/crypta-django
-[forks-shield]: https://gitlab.com/volkeno/crypta-django
-[forks-url]: https://gitlab.com/volkeno/crypta-django
-[stars-shield]: https://gitlab.com/volkeno/crypta-django
-[stars-url]: https://gitlab.com/volkeno/crypta-django
-[issues-shield]: https://gitlab.com/volkeno/crypta-django
-[issues-url]: https://gitlab.com/volkeno/crypta-django
-[license-shield]: https://gitlab.com/volkeno/crypta-django
-[license-url]: https://gitlab.com/volkeno/crypta-django
-[linkedin-shield]: https://gitlab.com/volkeno/crypta-django
-[linkedin-url]: https://www.linkedin.com/company/volkeno/mycompany
-[product-screenshot]: images/screenshot.png
+## VERSIONNING
+### DEV
+1. git tag -a dev-1.0 -m "Dev release 1.0"
+2. git push origin --tags
+### STAGING
+1. git tag -a staging-1.0 -m "Staging release 1.0"
+2. git push origin --tags
+### PRODUCTION
+1. git tag -a production-1.0 -m "Production release 1.0"
+2. git push origin --tags
