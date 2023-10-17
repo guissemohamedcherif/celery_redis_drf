@@ -124,8 +124,8 @@ DATABASES = {
 
         'PASSWORD': 'Volkeno@2023!',
 
-        # 'HOST': 'localhost',
-        'HOST': 'db',
+        'HOST': 'localhost',
+        # 'HOST': 'db',
 
         'PORT': '5432',
         'TEST': {
