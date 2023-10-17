@@ -502,7 +502,7 @@ class ConversationGetWebSerializer(ModelSerializer):
     participants = UserGetSerializer(many=True)
     messages = serializers.SerializerMethodField("get_messages")
     def get_messages(self, obj):
-        return MessageGetSerializer(obj.messages.order_by('-id')[:20], many=True ).data
+        return MessageGetSerializer(obj.messages.order_by('id')[:20], many=True ).data
 
     class Meta:
         model = Conversation
@@ -530,8 +530,7 @@ class ConversationWebPostGetSerializer(ModelSerializer):
     participants = UserGetSerializer(many=True)
     messages = serializers.SerializerMethodField("get_messages")
     def get_messages(self, obj):
-        # return MessageGetSerializer(obj.messages.order_by('-created_at')[:10], many=True ).data
-        return MessageGetSerializer(obj.messages.order_by('-id')[:20], many=True ).data
+        return MessageGetSerializer(obj.messages.order_by('id')[:20], many=True ).data
 
     class Meta:
         model = Conversation

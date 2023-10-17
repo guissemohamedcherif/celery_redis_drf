@@ -52,6 +52,16 @@ urlpatterns = [
   url(r'^conditions/$', views.ConditionAPIListView.as_view()),
   url(r'^cgu/$', views.CGUAPIListView.as_view()),
 
+  url(r'^conversations/$', views.ConversationAPIListView.as_view()),
+  url(r'^conversations/(?P<slug>[\w\-]+)/$', views.ConversationAPIView.as_view()),
+  url(r'^mobile/user/(?P<slug>[\w\-]+)/conversations/$', views.ConversationByUserByMobileAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/conversations/$', views.ConversationByUserAPIListView.as_view()),
+  url(r'^conversation/(?P<slug>[\w\-]+)/messages/$', views.MessagesByConversationAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/messages/$', views.MessageByUserAPIListView.as_view()),
+  url(r'^messages/$', views.MessageAPIListView.as_view()),
+  url(r'^messages/(?P<slug>[\w\-]+)/$', views.MessageAPIView.as_view()),
+
+
 
 
   

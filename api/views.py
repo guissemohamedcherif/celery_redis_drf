@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from api.serializers import *
 from api.models import *
 from rest_framework import generics
-from django.db.models import Q
+from django.db.models import Q,OuterRef,Subquery
 from easy_password_generator import PassGen
 from api.notifications import Notif as notify
 from backend import settings
@@ -37,6 +37,12 @@ from backend.settings import APP_NAME
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+class TranslatedErrorResponse(Response):
+    def __init__(self, serializer_errors, status=None, template_name=None, headers=None, content_type=None):
+        translated_errors = Utils.translate_errors_array(serializer_errors)
+        super().__init__(translated_errors, status=status, template_name=template_name, headers=headers, content_type=content_type)
+
 
 class UserRegisterAPIView(LoggingMixin, generics.CreateAPIView):
     permission_classes = ()
@@ -85,7 +91,7 @@ class UserRegisterAPIView(LoggingMixin, generics.CreateAPIView):
         elif user_type == MEDECIN:
             return self.register_medecin(request)
         else:
-            return Response({"message":"Veuillez choisir le type d'utilisateur patient ou  praticien"}, status=400)
+            return Response({"message":"Veuillez choisir indiqué si vous êtes un patient ou un praticien"}, status=400)
 
     def register_patient(self, request):
         email = request.data.get("email")
@@ -607,7 +613,7 @@ class PasswordResetView(generics.CreateAPIView):
             passReset.used = True
             passReset.date_used = timezone.now()
             passReset.save()
-            response = Response(PatientGetSerializer(user_).data, status=200)
+            response = Response(UserGetSerializer(user_).data, status=200)
             response._resource_closers.append(self.do_after(user_))
             return response
         except Http404:
@@ -649,7 +655,7 @@ class PasswordResetRequestView(LoggingMixin, generics.CreateAPIView):
             user_ = get_object_or_404(User, email=request.data.get('email'))
             code_ = my_utils.get_code()
             PasswordReset.objects.create(user=user_, code=code_)
-            response = Response(PatientGetSerializer(user_).data, status=200)
+            response = Response(UserGetSerializer(user_).data, status=200)
             response._resource_closers.append(self.do_after(user_, code_))
             return response 
         except Http404:
@@ -689,18 +695,6 @@ class UserRetrieveView(LoggingMixin, generics.RetrieveAPIView):
                 "message": "no such item",
             }, status=400)
         serializer = UserGetSerializer(user)
-        if user.user_type == MEDECIN:
-            medecin = Medecin.objects.get(pk=user)
-            serializer = MedecinGetSerializer(medecin)
-        elif user.user_type == PATIENT:
-            patient = Patient.objects.get(pk=user)
-            serializer = PatientGetSerializer(patient)
-        elif user.user_type == CABINET:
-            cabinet = Cabinet.objects.get(pk=user)
-            serializer = CabinetGetSerializer(cabinet)
-        elif user.user_type == ADMIN:
-            admin = AdminUser.objects.get(pk=user)
-            serializer = AdminUserGetSerializer(admin)
         return Response(serializer.data)
     
 
@@ -2087,18 +2081,18 @@ class ConversationAPIListView(LoggingMixin, generics.CreateAPIView):
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
-    
-
 
 class ConversationByUserByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
 
     def get(self, request,slug, format=None):
-        items = Conversation.objects.filter(participants__slug__in=[slug]).order_by('-pk')
+        latest_message_subquery = Message.objects.filter(conversation=OuterRef('pk')).order_by('-created_at').values('created_at')[:1]
+        items = Conversation.objects.filter(
+            participants__slug__in=[slug]).annotate(latest_message_created_at=Subquery(latest_message_subquery)
+        ).order_by('-latest_message_created_at')
         serializer = ConversationGetSerializer(items,many=True,context={"sender":slug})
         return Response(serializer.data)
-    
 
 class MessageByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Conversation.objects.all()
@@ -2113,14 +2107,17 @@ class MessageByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
                                        ).order_by('-pk')
         serializer = MessageGetSerializer(items,many=True)
         return Response(serializer.data)
-    
+
 
 class ConversationByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
 
     def get(self, request,slug, format=None):
-        items = Conversation.objects.filter(participants__slug__in=[slug]).order_by('-pk')
+        latest_message_subquery = Message.objects.filter(conversation=OuterRef('pk')).order_by('-created_at').values('created_at')[:1]
+        items = Conversation.objects.filter(
+            participants__slug__in=[slug]).annotate(latest_message_created_at=Subquery(latest_message_subquery)
+        ).order_by('-latest_message_created_at')
         limit = self.request.query_params.get('limit')
         search = self.request.query_params.get('q')
         if search:
