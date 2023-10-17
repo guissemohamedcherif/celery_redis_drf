@@ -98,22 +98,24 @@ class UserRegisterAPIView(LoggingMixin, generics.CreateAPIView):
         if User.objects.filter(email=email).first():
             return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
         serializer = PatientRegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        item = serializer.save()
-        response = Response(PatientGetSerializer(item).data, status=201)
-        response._resource_closers.append(self.do_after(item, PATIENT))
-        return response
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(PatientGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item, PATIENT))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def register_medecin(self, request):
         email = request.data.get("email")
         if User.objects.filter(email=email).first():
             return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
         serializer = MedecinRegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        item = serializer.save()
-        response = Response(MedecinGetSerializer(item).data, status=201)
-        response._resource_closers.append(self.do_after(item, MEDECIN))
-        return response
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(MedecinGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item, MEDECIN))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 
 class PatientRegisterAPIView(LoggingMixin, generics.CreateAPIView):
@@ -168,11 +170,12 @@ class PatientRegisterAPIView(LoggingMixin, generics.CreateAPIView):
         if User.objects.filter(email=email).first():
             return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
         serializer = PatientRegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        item = serializer.save()
-        response = Response(PatientGetSerializer(item).data, status=201)
-        response._resource_closers.append(self.do_after(item, PATIENT))
-        return response
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(PatientGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item, PATIENT))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
     
 
 class MedecinRegisterAPIView(LoggingMixin, generics.CreateAPIView):
@@ -227,11 +230,12 @@ class MedecinRegisterAPIView(LoggingMixin, generics.CreateAPIView):
         if User.objects.filter(email=email).first():
             return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
         serializer = MedecinRegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        item = serializer.save()
-        response = Response(MedecinGetSerializer(item).data, status=201)
-        response._resource_closers.append(self.do_after(item, MEDECIN))
-        return response
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(MedecinGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item, MEDECIN))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 
 
@@ -344,7 +348,7 @@ class UserAPIView(LoggingMixin, generics.CreateAPIView):
                     serializer.save()
                     item.save()
                     return Response(UserGetSerializer(item).data)
-                return Response(serializer.errors, status=400)
+                return TranslatedErrorResponse(serializer.errors, status=400)
             return Response({"message": "Accès interdit"}, status=401)
         except User.DoesNotExist:
             return Response(status=404)
@@ -426,7 +430,7 @@ class UserReactivationAPIView(LoggingMixin, generics.CreateAPIView):
                     notify.send_email(subject, to, 'mail_reactivation_user.html',{'item': item, 'settings':settings})
                     serializer.save()
                     return Response(serializer.data)
-                return Response(serializer.errors, status=400)
+                return TranslatedErrorResponse(serializer.errors, status=400)
             return Response({"message":"Un autre compte à associé cet email existe déja"},status=400)
         return Response({"message":"L'email est obligatoire"},status=400)
 
@@ -452,7 +456,7 @@ class AccountActivationAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -478,7 +482,7 @@ class AccountActivationAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 class PasswordResetAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = AccountActivation.objects.all()
@@ -502,7 +506,7 @@ class PasswordResetAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -528,7 +532,7 @@ class PasswordResetAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 class AccountActivationUserView(LoggingMixin, generics.CreateAPIView):
     permission_classes = (
@@ -681,7 +685,7 @@ class ChangePasswordView(LoggingMixin, generics.UpdateAPIView):
             self.object.password_reset_count = 1
             self.object.save()
             return Response(status=200)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 class UserRetrieveView(LoggingMixin, generics.RetrieveAPIView):
     queryset = User.objects.all()
@@ -841,7 +845,7 @@ class AdminUserAPIListView(LoggingMixin, generics.CreateAPIView):
                 }
                 notify.send_email(subject, to, template_src, context)
                 return Response(serializer.data, status=201)
-            return Response(serializer.errors, status=400)
+            return TranslatedErrorResponse(serializer.errors, status=400)
         else:
             return Response({"message": "Unauthorized action"}, status=403)
 
@@ -870,7 +874,7 @@ class AdminUserAPIView(LoggingMixin, generics.RetrieveAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -903,7 +907,7 @@ class SpecialiteAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -931,7 +935,7 @@ class SpecialiteAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
     
 class SpecialiteByVisitorAPIListView(LoggingMixin, generics.RetrieveAPIView):
     permission_classes = (  
@@ -1010,7 +1014,7 @@ class ConditionAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1034,7 +1038,7 @@ class ConditionAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
     
 
 class CGUAPIListView(LoggingMixin, generics.RetrieveAPIView):
@@ -1065,7 +1069,7 @@ class UserReadMessagerieAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 class MessagerieAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = Messagerie.objects.all()
     serializer_class = MessagerieSerializer
@@ -1082,7 +1086,7 @@ class MessagerieAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1227,7 +1231,7 @@ class MessagerieAPIListView(LoggingMixin, generics.CreateAPIView):
             response._resource_closers.append(self.notification)
             return response
 
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def notification(self):
         item = self.serializer.instance
@@ -1284,7 +1288,7 @@ class ThemeAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1309,7 +1313,7 @@ class ThemeAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 class ThemeByVisitorAPIListView(generics.RetrieveAPIView):
     permission_classes = (
@@ -1363,7 +1367,7 @@ class ForumAPIListView (generics.CreateAPIView):
             response = Response(serializer.data, status=201)
             response._resource_closers.append(notif_users)
             return response
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 
 class ForumByMobileAPIListView (generics.CreateAPIView):
@@ -1403,7 +1407,7 @@ class ForumAPIView(generics.RetrieveAPIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=400)
+            return TranslatedErrorResponse(serializer.errors, status=400)
         except Forum.DoesNotExist:
             return Response(status=404)
 
@@ -1469,7 +1473,7 @@ class CommentForumAPIListView (generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 
 class CommentForumAPIView(generics.RetrieveAPIView):
@@ -1492,7 +1496,7 @@ class CommentForumAPIView(generics.RetrieveAPIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=400)
+            return TranslatedErrorResponse(serializer.errors, status=400)
         except CommentForum.DoesNotExist:
             return Response(status=404)
 
@@ -1564,7 +1568,7 @@ class SignalementAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1641,7 +1645,7 @@ class SignalementAPIListView(LoggingMixin, generics.CreateAPIView):
             response = Response(serializer.data, status=201)
             response._resource_closers.append(notification)
             return response
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 
 
@@ -1666,7 +1670,7 @@ class BlockedUserAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1696,7 +1700,7 @@ class BlockedUserAPIListView(LoggingMixin, generics.CreateAPIView):
             response = Response(serializer.data, status=201)
             # response._resource_closers.append(notification)
             return response
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     
 class ContactAPIListView(LoggingMixin, generics.CreateAPIView):
@@ -1752,7 +1756,7 @@ class ContactAPIListView(LoggingMixin, generics.CreateAPIView):
             response = Response(serializer.data, status=201)
             response._resource_closers.append(notif_admins)
             return response
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 class ContactAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
@@ -1774,7 +1778,7 @@ class ContactAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1817,7 +1821,7 @@ class ContactAddAPIListView(LoggingMixin, generics.CreateAPIView):
             response = Response(serializer.data, status=201)
             response._resource_closers.append(notify.notify_admins(admins,subject,template_src,context_dict))
             return response
-        return Response(serializer.errors, status=400) 
+        return TranslatedErrorResponse(serializer.errors, status=400) 
 class ResponseContactAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = ResponseContact.objects.all()
     serializer_class = ResponseContactSerializer
@@ -1840,7 +1844,7 @@ class ResponseContactAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1884,7 +1888,7 @@ class ResponseContactAPIListView(LoggingMixin, generics.CreateAPIView):
                                  "year":timezone.now().year }
                 notify.send_email(subject,to,template_src,context_dict)
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 
 class NotificationAPIView(LoggingMixin, generics.CreateAPIView):
@@ -1908,7 +1912,7 @@ class NotificationAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -1933,7 +1937,7 @@ class NotificationAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 
 class NotificationByUserAPIListView(LoggingMixin, generics.CreateAPIView):
@@ -1978,7 +1982,7 @@ class MessageAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -2055,7 +2059,7 @@ class ConversationAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -2080,7 +2084,7 @@ class ConversationAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 class ConversationByUserByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Conversation.objects.all()
@@ -2331,7 +2335,7 @@ class NewsletterAPIView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -2356,7 +2360,7 @@ class NewsletterAPIListView(LoggingMixin, generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)
 
 class NewsletterVisitorAPIListView(LoggingMixin, generics.CreateAPIView):
     permission_classes = (
@@ -2374,4 +2378,4 @@ class NewsletterVisitorAPIListView(LoggingMixin, generics.CreateAPIView):
             subject= "NEWSLETTER"
             notify.send_email(subject, item.email, 'mail_newsletter.html',{'settings': settings})
             return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        return TranslatedErrorResponse(serializer.errors, status=400)

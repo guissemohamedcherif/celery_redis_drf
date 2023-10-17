@@ -251,13 +251,13 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 31457280  # 30 MB
 # EMAIL_HOST = 'alaska.o2switch.net'
 # EMAIL_USE_TLS = True
 # EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'excelsis-mailing@withvolkeno.com'
+# EMAIL_HOST_USER = 'boilerplate-mailing@withvolkeno.com'
 # EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'sauron.o2switch.net'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'excelsis@excelsis-api.volkeno-engineering.click'
+EMAIL_HOST_USER = 'boilerplate@boilerplate-api.volkeno-engineering.click'
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 
@@ -268,19 +268,19 @@ APP_NAME = "BOILERPLATE"
 
 TARGET_ENV = "dev"
 if TARGET_ENV == "dev":
-    REDIRECT_URL = 'https://excelsis.volkeno-engineering.click'
-    WEB_URL = 'https://excelsis.volkeno-engineering.click'
-    API_URL = 'https://excelsis-api.volkeno-engineering.click'
+    REDIRECT_URL = 'https://boilerplate.volkeno-engineering.click'
+    WEB_URL = 'https://boilerplate.volkeno-engineering.click'
+    API_URL = 'https://boilerplate-api.volkeno-engineering.click'
     API_KEY = os.environ.get('API_KEY')
 
 elif TARGET_ENV == "staging":
-    REDIRECT_URL = 'https://excelsis.volkeno-engineering.click'
-    WEB_URL = 'https://excelsis.volkeno-engineering.click'
-    API_URL = 'https://excelsis-api.volkeno-engineering.click'
+    REDIRECT_URL = 'https://boilerplate.volkeno-engineering.click'
+    WEB_URL = 'https://boilerplate.volkeno-engineering.click'
+    API_URL = 'https://boilerplate-api.volkeno-engineering.click'
 elif TARGET_ENV == "prod":
-    REDIRECT_URL = 'https://excelsis.volkeno-engineering.click'
-    WEB_URL = 'https://excelsis.volkeno-engineering.click'
-    API_URL = 'https://excelsis-api.volkeno-engineering.click'
+    REDIRECT_URL = 'https://boilerplate.volkeno-engineering.click'
+    WEB_URL = 'https://boilerplate.volkeno-engineering.click'
+    API_URL = 'https://boilerplate-api.volkeno-engineering.click'
 
 JAZZMIN_SETTINGS = {
     "site_title": f"{APP_NAME} admin",

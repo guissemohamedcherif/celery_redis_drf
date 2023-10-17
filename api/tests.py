@@ -19,16 +19,16 @@ class GetTokenApiTest(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.user = get_user_model().objects.create_user('excelsis@yopmail.com', 'Lechrist@12')
+        self.user = get_user_model().objects.create_user('boilerplate@yopmail.com', 'Lechrist@12')
         # self.client.force_authenticate(self.user)
 
     def test_get_token(self):
-        data = {'email': 'excelsis@yopmail.com', 'password': 'Lechrist@12'}
+        data = {'email': 'boilerplate@yopmail.com', 'password': 'Lechrist@12'}
         res = self.client.post(API_URL+'/auth/get-token', data)
         self.assertEqual(res.status_code, 200)
 
     def test_verify_token(self):
-        data = {'email': 'excelsis@yopmail.com', 'password': 'Lechrist@12'}
+        data = {'email': 'boilerplate@yopmail.com', 'password': 'Lechrist@12'}
         res1 = self.client.post(API_URL+'/auth/get-token', data)
         res = self.client.post(
             API_URL+'/auth/verify-token',
@@ -36,7 +36,7 @@ class GetTokenApiTest(TestCase):
         self.assertEqual(res.status_code, 200)
 
     def test_refresh_token(self):
-        data = {'email': 'excelsis@yopmail.com',
+        data = {'email': 'boilerplate@yopmail.com',
                 'password': 'Lechrist@12'}
         res1 = self.client.post(API_URL+'/auth/get-token', data)
         res = self.client.post(API_URL+'/auth/refresh-token',
@@ -44,7 +44,7 @@ class GetTokenApiTest(TestCase):
         self.assertEqual(res.status_code, 200)
 
     def test_login(self):
-        data = {'email': 'excelsis@yopmail.com', 'password': 'Lechrist@12'}
+        data = {'email': 'boilerplate@yopmail.com', 'password': 'Lechrist@12'}
         res = self.client.post(API_URL+'/auth/login/', data)
         self.assertEqual(res.status_code, 200)
 
@@ -66,7 +66,7 @@ class ChangePasswordCRUDApiTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-         'excelsis@yopmail.com', 'Lechrist@12')
+         'boilerplate@yopmail.com', 'Lechrist@12')
         self.client.force_authenticate(self.user)
 
     def test_change_password(self):
