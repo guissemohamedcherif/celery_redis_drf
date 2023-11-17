@@ -25,6 +25,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from deep_translator import GoogleTranslator
 load_dotenv()
 N = 4
 C = 7
@@ -191,4 +192,14 @@ class Utils():
             for error in field_errors:
                 translated_field_errors.append(_(" ".join(error.split())))
             translated_errors[field_name] = " ".join(translated_field_errors)
+        return translated_errors
+
+    def translate_errors_array(serializer_errors):
+        translator = GoogleTranslator(source='en', target='fr')
+        translated_errors = {}
+
+        for field_name, field_errors in serializer_errors.items():
+            translated_field_errors = [translator.translate(error) for error in field_errors]
+            translated_errors[field_name] = translated_field_errors
+
         return translated_errors
