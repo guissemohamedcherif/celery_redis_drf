@@ -106,56 +106,6 @@ class UserPostSerializer(ModelSerializer):
         user.save()
         return user
 
-class SpecialiteSerializer(ModelSerializer):
-
-    class Meta:
-        model = Specialite
-        fields = '__all__'
-
-
-class MedecinGetSerializer(serializers.ModelSerializer):
-    specialite = SpecialiteSerializer()
-
-    class Meta:
-        model = User
-        exclude = (
-            'user_permissions', 'groups', 'is_superuser',
-            'is_staff', 'password')
-        
-
-class MedecinGetSimpleSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        exclude = (
-            'user_permissions', 'groups', 'is_superuser',
-            'is_staff', 'password')
-
-    
-class PatientGetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        exclude = ('user_permissions', 'groups', 'is_superuser', 'is_staff','date_de_naissance','nationnalite',"cni","ordre_des_medecins","pays_ordre_des_medecins","cv","taux_horaire","specialite")
-
-
-class MedecinGetDetailSerializer(serializers.ModelSerializer):
-    specialite = SpecialiteSerializer()
-    class Meta:
-        model = User
-        exclude = (
-            'user_permissions', 'groups', 'is_superuser',
-            'is_staff', 'password')
-        
-
-class MedecinGetSearchSerializer(serializers.ModelSerializer):
-    specialite = SpecialiteSerializer()
-    class Meta:
-        model = User
-        exclude = (
-            'user_permissions', 'groups', 'is_superuser',
-            'is_staff', 'password')
-        
-
 
 class AdminUserSerializer(ModelSerializer):
 
@@ -199,53 +149,10 @@ class AdminUserGetSerializer(serializers.ModelSerializer):
             'user_permissions', 'groups', 'is_superuser',
             'is_staff', 'password')
 
-
-class OffreSerializer(ModelSerializer):
-
-    class Meta:
-        model = Offre
-        fields = '__all__'
-
-
-class OffreGetSerializer(ModelSerializer):
-    class Meta:
-        model = Offre
-        fields = '__all__'
-
 class ModePaiementSerializer(ModelSerializer):
 
     class Meta:
         model = ModePaiement
-        fields = '__all__'
-
-
-class AbonnementSerializer(ModelSerializer):
-
-    class Meta:
-        model = Abonnement
-        fields = '__all__'
-
-
-class AbonnementGetSerializer(ModelSerializer):
-    offre = OffreSerializer()
-    moyen_paiement = ModePaiementSerializer()
-    user = serializers.SerializerMethodField("get_user")
-    def get_user(self, obj):
-        if obj.user.user_type == MEDECIN:
-            item = Medecin.objects.get(pk=obj.user.id)
-            return MedecinSerializer(item).data
-        return UserGetSerializer(obj.user).data
-    class Meta:
-        model = Abonnement
-        fields = '__all__'
-
-
-class AbonnementByUserSerializer(ModelSerializer):
-    offre = OffreSerializer()
-    moyen_paiement = ModePaiementSerializer()
-
-    class Meta:
-        model = Abonnement
         fields = '__all__'
 
 
@@ -305,48 +212,6 @@ class CallbackPaymentSerializer(ModelSerializer):
         fields = '__all__'  
 
 
-class MessagerieSerializer(ModelSerializer):
-
-    class Meta:
-        model = Messagerie
-        fields = '__all__'
-
-class MessagerieGetSerializer(ModelSerializer):
-    receivers = UserGetSerializer(many=True)
-    sender = UserGetSerializer()
-    message = MessagerieSerializer()
-
-    class Meta:
-        model = Messagerie
-        fields = '__all__'
-
-
-class MessagerieRecusGetSerializer(ModelSerializer):
-    receivers = UserGetSerializer(many=True)
-    sender = UserGetSerializer()
-    message = MessagerieSerializer()
-    read = serializers.SerializerMethodField("get_read")
-    def get_read(self, obj):
-        read = False
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            items = obj.userreadmessagerie.filter(user=request.user)
-            ic(items.count())
-            if items.count() > 0:
-                read=True
-        return read
-
-    class Meta:
-        model = Messagerie
-        fields = '__all__'
-
-class UserReadMessagerieSerializer(ModelSerializer):
-
-    class Meta:
-        model = UserReadMessagerie
-        fields = '__all__'
-
-
 class NotificationSerializer(ModelSerializer):
 
     class Meta:
@@ -355,18 +220,6 @@ class NotificationSerializer(ModelSerializer):
 
 
 class NotificationGetSerializer(ModelSerializer):
-    user = serializers.SerializerMethodField("get_user")
-    def get_user(self, obj):
-        if obj.receiver.user_type == MEDECIN:
-            item = Medecin.objects.get(pk=obj.receiver.id)
-            return MedecinSerializer(item).data
-        elif obj.receiver.user_type == PATIENT:
-            item = Patient.objects.get(pk=obj.receiver.id)
-            return PatientSerializer(item).data
-        elif obj.receiver.user_type == SECRETAIRE:
-            item = Secretaire.objects.get(pk=obj.receiver.id)
-            return SecretaireGetSerializer(item).data
-        return UserGetSerializer(obj.receiver).data
     class Meta:
         model = Notification
         fields = '__all__'
@@ -377,7 +230,6 @@ class ContactSerializer(ModelSerializer):
     class Meta:
         model = Contact
         fields = '__all__'
-
 
 
 class ContactGetSerializer(serializers.ModelSerializer):
@@ -391,11 +243,14 @@ class ContactGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = '__all__'
+
+
 class ResponseContactSerializer(ModelSerializer):
 
     class Meta:
         model = ResponseContact
         fields = '__all__'
+
 
 class ResponseContactGetSerializer(ModelSerializer):
     message = ContactSerializer()
@@ -403,51 +258,6 @@ class ResponseContactGetSerializer(ModelSerializer):
 
     class Meta:
         model = ResponseContact
-        fields = '__all__'
-
-class SpecialiteExcelFileSerializer(ModelSerializer):
-    class Meta:
-        model = SpecialiteExcelFile
-        fields = '__all__'
-
-
-class MessagerieSerializer(ModelSerializer):
-
-    class Meta:
-        model = Messagerie
-        fields = '__all__'
-
-class MessagerieGetSerializer(ModelSerializer):
-    receivers = UserGetSerializer()
-    sender = UserGetSerializer()
-    #message = MessagerieSerializer()
-
-    class Meta:
-        model = Messagerie
-        fields = '__all__'
-class MessagerieRecusGetSerializer(ModelSerializer):
-    receivers = UserGetSerializer(many=True)
-    sender = UserGetSerializer()
-    message = MessagerieSerializer()
-    read = serializers.SerializerMethodField("get_read")
-    def get_read(self, obj):
-        read = False
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            items = obj.userreadmessagerie.filter(user=request.user)
-            # items = UserReadMessagerie.objects.filter(user=receiver,messagerie=obj)
-            ic(items.count())
-            if items.count() > 0:
-                read=True
-        return read
-
-    class Meta:
-        model = Messagerie
-        fields = '__all__'
-class UserReadMessagerieSerializer(ModelSerializer):
-
-    class Meta:
-        model = UserReadMessagerie
         fields = '__all__'
 
 
@@ -571,20 +381,6 @@ class SignalementGetSerializer(serializers.ModelSerializer):
     comment = CommentForumSerializer()
     class Meta:
         model = Signalement
-        fields = '__all__'
-
-
-class BlockedUserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BlockedUser
-        fields = '__all__'
-
-
-class BlockedUserGetSerializer(serializers.ModelSerializer):
-    blocked_user = UserGetSerializer()
-    class Meta:
-        model = BlockedUser
         fields = '__all__'
 
 

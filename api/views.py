@@ -17,12 +17,10 @@ from dateutil.relativedelta import relativedelta
 from django.shortcuts import redirect, render
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
-from deep_translator import GoogleTranslator
 from api.utils import REGEX, Utils as my_utils
 from safedelete.models import HARD_DELETE
 from backend.settings import API_URL, API_KEY,APP_NAME
 from icecream import ic
-from google_currency import convert 
 import json
 from ast import literal_eval
 import hashlib
@@ -50,24 +48,19 @@ class UserRegisterAPIView(LoggingMixin, generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
 
     REGEX_PATTERN = REGEX
-    USER_TYPE_SERIALIZER_MAPPING = {
-        PATIENT: PatientRegisterSerializer,
-        MEDECIN: MedecinRegisterSerializer
-    }
 
-    def do_after(self, item, user_type):
+    def do_after(self, item):
         """
         Perform actions after user registration.
         """
-        contenu = f"Félicitations! Votre compte {user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
+        contenu = f"Félicitations! Votre compte {item.user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
         subject = f"Bienvenu(e)🎉 sur  {APP_NAME}"
         to = item.email
         template_src = 'mail_notification.html'
         context = {
-            'user_type': user_type.upper(),
+            'user_type': item.user_type.upper(),
             'email': item.email,
-            "nom":item.nom,
-            "prenom":item.prenom,
+            "name":item.name,
             'settings': settings,
             "id":"false",
             "contenu":contenu,
@@ -85,158 +78,16 @@ class UserRegisterAPIView(LoggingMixin, generics.CreateAPIView):
             return Response({ "message": "Le mot de passe doit avoir au moins au minimum 8 caractères,1 caractère en majuscule, 1 caractère en minuscule, 1 nombre et 1 caractère spéciale"
                     }, status=400)
         
-        user_type = request.data.get("user_type")
-        if user_type == PATIENT:
-            return self.register_patient(request)
-        elif user_type == MEDECIN:
-            return self.register_medecin(request)
-        else:
-            return Response({"message":"Veuillez choisir indiqué si vous êtes un patient ou un praticien"}, status=400)
-
-    def register_patient(self, request):
         email = request.data.get("email")
         if User.objects.filter(email=email).first():
-            return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
-        serializer = PatientRegisterSerializer(data=request.data)
+            return Response({"message":"Cet utilisateur existe déja dans la base de donnée"},status=400)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             item = serializer.save()
-            response = Response(PatientGetSerializer(item).data, status=201)
-            response._resource_closers.append(self.do_after(item, PATIENT))
+            response = Response(UserGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item))
             return response
         return TranslatedErrorResponse(serializer.errors, status=400)
-
-    def register_medecin(self, request):
-        email = request.data.get("email")
-        if User.objects.filter(email=email).first():
-            return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
-        serializer = MedecinRegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            item = serializer.save()
-            response = Response(MedecinGetSerializer(item).data, status=201)
-            response._resource_closers.append(self.do_after(item, MEDECIN))
-            return response
-        return TranslatedErrorResponse(serializer.errors, status=400)
-
-
-class PatientRegisterAPIView(LoggingMixin, generics.CreateAPIView):
-    permission_classes = ()
-    queryset = User.objects.all()
-    serializer_class = PatientRegisterSerializer
-
-    REGEX_PATTERN = REGEX
-    USER_TYPE_SERIALIZER_MAPPING = {
-        PATIENT: PatientRegisterSerializer,
-        MEDECIN: MedecinRegisterSerializer
-    }
-
-    def do_after(self, item, user_type):
-        """
-        Perform actions after user registration.
-        """
-        contenu = f"Félicitations! Votre compte {user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
-        subject = f"Bienvenu(e)🎉 sur  {APP_NAME}"
-        to = item.email
-        template_src = 'mail_notification.html'
-        context = {
-            'user_type': user_type.upper(),
-            'email': item.email,
-            "nom":item.nom,
-            "prenom":item.prenom,
-            'settings': settings,
-            "id":"false",
-            "contenu":contenu,
-            "year":timezone.now().year
-        }
-        notify.send_email(subject, to, template_src, context)
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST request for user registration.
-        """
-        pattern = re.compile(self.REGEX_PATTERN)
-        if ('password' in request.data and request.data['password']
-           and not pattern.match(request.data['password'])):
-            return Response({ "message": "Le mot de passe doit avoir au moins au minimum 8 caractères,1 caractère en majuscule, 1 caractère en minuscule, 1 nombre et 1 caractère spéciale"
-                    }, status=400)
-        
-        user_type = request.data.get("user_type",PATIENT)
-        if user_type == PATIENT:
-            return self.register_patient(request)
-        else:
-            return Response({"message":"Veuillez choisir le type d'utilisateur patient"}, status=400)
-
-    def register_patient(self, request):
-        email = request.data.get("email")
-        if User.objects.filter(email=email).first():
-            return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
-        serializer = PatientRegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            item = serializer.save()
-            response = Response(PatientGetSerializer(item).data, status=201)
-            response._resource_closers.append(self.do_after(item, PATIENT))
-            return response
-        return TranslatedErrorResponse(serializer.errors, status=400)
-    
-
-class MedecinRegisterAPIView(LoggingMixin, generics.CreateAPIView):
-    permission_classes = ()
-    queryset = User.objects.all()
-    serializer_class = MedecinRegisterSerializer
-
-    REGEX_PATTERN = REGEX
-    USER_TYPE_SERIALIZER_MAPPING = {
-        PATIENT: PatientRegisterSerializer,
-        MEDECIN: MedecinRegisterSerializer
-    }
-
-    def do_after(self, item, user_type):
-        """
-        Perform actions after user registration.
-        """
-        contenu = f"Félicitations! Votre compte {user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
-        subject = f"Bienvenu(e)🎉 sur  {APP_NAME}"
-        to = item.email
-        template_src = 'mail_notification.html'
-        context = {
-            'user_type': user_type.upper(),
-            'email': item.email,
-            "nom":item.nom,
-            "prenom":item.prenom,
-            'settings': settings,
-            "id":"false",
-            "contenu":contenu,
-            "year":timezone.now().year
-        }
-        notify.send_email(subject, to, template_src, context)
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST request for user registration.
-        """
-        pattern = re.compile(self.REGEX_PATTERN)
-        if ('password' in request.data and request.data['password']
-           and not pattern.match(request.data['password'])):
-            return Response({ "message": "Le mot de passe doit avoir au moins au minimum 8 caractères,1 caractère en majuscule, 1 caractère en minuscule, 1 nombre et 1 caractère spéciale"
-                    }, status=400)
-        
-        user_type = request.data.get("user_type",MEDECIN)
-        if user_type == MEDECIN:
-            return self.register_medecin(request)
-        else:
-            return Response({"message":"Veuillez choisir le type d'utilisateur medecin"}, status=400)
-
-    def register_medecin(self, request):
-        email = request.data.get("email")
-        if User.objects.filter(email=email).first():
-            return Response({"message":"Ce utilisateur existe déja dans la base de donnée"},status=400)
-        serializer = MedecinRegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            item = serializer.save()
-            response = Response(MedecinGetSerializer(item).data, status=201)
-            response._resource_closers.append(self.do_after(item, MEDECIN))
-            return response
-        return TranslatedErrorResponse(serializer.errors, status=400)
-
 
 
 class LoginView(LoggingMixin, generics.CreateAPIView):    
@@ -255,20 +106,13 @@ class LoginView(LoggingMixin, generics.CreateAPIView):
                         if item and item.email != email:
                             email = item.email
                             request.data['email'] = email
+                    
                     user = authenticate(request, email=email, password=request.data['password'])
                     if user:
                         token = jwt_encode_handler(jwt_payload_handler(user))
-                        user_type_mapping = {
-                            MEDECIN: (User, MedecinGetSerializer),
-                            PATIENT: (User, PatientGetSerializer),
-                            ADMIN: (AdminUser, AdminUserGetSerializer)
-                        }
-                        model_class, serializer_class = user_type_mapping.get(user.user_type, (User, UserGetSerializer))
-                        item = model_class.objects.get(pk=user.id)
+                        item = User.objects.get(pk=user.id)
                         if item.user_type == DELETED:
                             return Response({"message": f"Votre compte a été supprimé. Pour plus d'informations, veuillez contacter l'équipe de {APP_NAME}."}, status=400)
-                        if item.is_suspended:
-                            return Response({"message": f"L'administrateur a suspendu votre compte pour défaut de paiement. Pour plus d'informations, veuillez contacter l'équipe de {APP_NAME}."}, status=400)
                         if item.is_archive:
                             return Response({"message": f"Votre compte a été archivé. Pour plus d'informations, veuillez contacter l'équipe de {APP_NAME}."}, status=400)
                         if not item.is_active:
@@ -278,7 +122,7 @@ class LoginView(LoggingMixin, generics.CreateAPIView):
                                 status=401)
                         return Response({
                             'token': token,
-                            'data': serializer_class(item).data
+                            'data': UserSerializer(item).data
                         }, status=200)
                     else:
                         return Response({"message": "Vos identifiants sont incorrects"}, status=400)
@@ -286,6 +130,7 @@ class LoginView(LoggingMixin, generics.CreateAPIView):
                     return Response({"status": "failure", "message": "Ce compte n'existe pas. Veuillez-vous enregistrer"}, status=400)
             return Response({"message": "Votre mot de passe est requis"}, status=401)
         return Response({"message": "Votre email est requis"}, status=401)
+
 
 class UserDeletedAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = User.objects.all()
@@ -307,7 +152,7 @@ class UserAPIListView(LoggingMixin, generics.RetrieveAPIView):
 
     def get(self, request, format=None):
         if (request.user.user_type == ADMIN or request.user.is_superuser or request.user.user_type == SUPERADMIN):
-            items = User.objects.exclude(Q(user_type=DELETED) | Q(user_type=PENDING) | Q(user_type=SUPERADMIN)).order_by('-pk')
+            items = User.objects.exclude(Q(user_type=DELETED) | Q(user_type=SUPERADMIN)).order_by('-pk')
             limit = self.request.query_params.get('limit')
             word = self.request.query_params.get('q')
             if word:
@@ -885,114 +730,6 @@ class AdminUserAPIView(LoggingMixin, generics.RetrieveAPIView):
         return Response(status=204)
 
 
-
-class SpecialiteAPIView(LoggingMixin, generics.CreateAPIView):
-    queryset = Specialite.objects.all()
-    serializer_class = SpecialiteSerializer
-
-    def get(self, request, slug, format=None):
-        try:
-            item = Specialite.objects.get(slug=slug)
-            serializer = SpecialiteSerializer(item)
-            return Response(serializer.data)
-        except Specialite.DoesNotExist:
-            return Response(status=404)
-
-    def put(self, request, slug, format=None):
-        try:
-            item = Specialite.objects.get(slug=slug)
-        except Specialite.DoesNotExist:
-            return Response(status=404)
-        serializer = SpecialiteSerializer(item, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return TranslatedErrorResponse(serializer.errors, status=400)
-
-    def delete(self, request, slug, format=None):
-        try:
-            item = Specialite.objects.get(slug=slug)
-        except Specialite.DoesNotExist:
-            return Response(status=404)
-        item.delete()
-        return Response(status=204)
-
-class SpecialiteAPIListView(LoggingMixin, generics.CreateAPIView):
-    queryset = Specialite.objects.all()
-    serializer_class = SpecialiteSerializer
-
-    def get(self, request, format=None):
-        items = Specialite.objects.order_by('pk')
-        limit = self.request.query_params.get('limit')
-        search = self.request.query_params.get('q')
-        if search:
-            items = items.filter(nom__icontains=search)
-        return KgPagination.get_response(limit,items,request,SpecialiteSerializer)
-    
-
-    def post(self, request, format=None):
-        serializer = SpecialiteSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return TranslatedErrorResponse(serializer.errors, status=400)
-    
-class SpecialiteByVisitorAPIListView(LoggingMixin, generics.RetrieveAPIView):
-    permission_classes = (  
-    )
-    queryset = Specialite.objects.all()
-    serializer_class = SpecialiteSerializer
-
-    def get(self, request, format=None):
-        items = Specialite.objects.all()
-        serializer = SpecialiteSerializer(items, many=True)
-        return Response(serializer.data)
-
-import xlrd
-from openpyxl import Workbook
-xlrd.xlsx.ensure_elementtree_imported(False, None)
-xlrd.xlsx.Element_has_iter = True
-class ImportSpecialiteExcelView(generics.CreateAPIView):
-    queryset = SpecialiteExcelFile.objects.all()
-    serializer_class = SpecialiteExcelFileSerializer
-
-    def post(self, request):
-        excel_upload = SpecialiteExcelFile.objects.create(fichier = request.FILES['fichier'])
-        if not excel_upload.fichier.name.endswith('.xlsx'):
-            return Response({'message':'THIS IS NOT A EXCEL FILE'})
-
-        workbook = xlrd.open_workbook(f'{settings.BASE_DIR}/mediafiles/{excel_upload.fichier.name}')
-
-        # Open the worksheet
-        worksheet = workbook.sheet_by_index(0)
-
-        # Iterate the rows and columns
-        
-     
-        # Print the cell values with tab space
-        # print(worksheet.cell_value(0, 1), end='\t')
-        if(worksheet.ncols != 1):
-            return Response({"message":"Merci de choisir un modèle d'importation conforme"},status=400)
-        imported = []
-        temoin = 0
-        for i in range(1, worksheet.nrows):
-            data={
-                "nom" : str(worksheet.cell_value(i, 0))
-            }
-            specialiteSerializer=SpecialiteSerializer(data=data)
-            if specialiteSerializer.is_valid():
-                specialiteSerializer.save()
-                specialite = Specialite.objects.get(id = specialiteSerializer.data['id'])
-                imported.append(specialite)
-                temoin = temoin + 1
-            else:
-                return Response({"error":specialiteSerializer.errors,"imported_rows": str(temoin)+" ligne (s) déja importée (s)"}, status=400)
-        serializer = SpecialiteSerializer(imported, many=True)
-        return Response(serializer.data)
-
-
-
-
 class ConditionAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
@@ -1054,219 +791,6 @@ class CGUAPIListView(LoggingMixin, generics.RetrieveAPIView):
         return Response(serializer.data)
     
 
-
-class UserReadMessagerieAPIListView(LoggingMixin, generics.CreateAPIView):
-    queryset = UserReadMessagerie.objects.all()
-    serializer_class = UserReadMessagerieSerializer
-
-    def get(self, request, format=None):
-        items = UserReadMessagerie.objects.order_by('-pk')
-        limit = self.request.query_params.get('limit')
-        return KgPagination.get_response(limit,items,request,UserReadMessagerieSerializer)
-
-    def post(self, request, format=None):
-        serializer = UserReadMessagerieSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return TranslatedErrorResponse(serializer.errors, status=400)
-class MessagerieAPIView(LoggingMixin, generics.CreateAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def get(self, request, slug, format=None):
-            return Response(status=404)
-
-    def put(self, request, slug, format=None):
-        try:
-            item = Messagerie.objects.get(slug=slug)
-        except Messagerie.DoesNotExist:
-            return Response(status=404)
-        serializer = MessagerieSerializer(item, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return TranslatedErrorResponse(serializer.errors, status=400)
-
-    def delete(self, request, slug, format=None):
-        try:
-            item = Messagerie.objects.get(slug=slug)
-        except Messagerie.DoesNotExist:
-            return Response(status=404)
-        item.delete()
-        return Response(status=204)
-    
-class MessagerieArchivageAPIView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def get(self, request, slug, format=None):
-        try:
-            item = Messagerie.objects.get(slug=slug)
-            item.is_deleted=True
-            item.save()
-            return Response(status=204)
-        except Messagerie.DoesNotExist:
-            return Response(status=404)
-        
-class MessagerieSupressionMultipleAPIListView(LoggingMixin, generics.CreateAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def post(self, request, format=None):
-        messageries = request.data.get("messageries",[])
-        if len(messageries) == 0:
-            return Response({"message":"Veuillez sélectionner un ou plusieurs messageries."},status=400)
-        Messagerie.objects.filter(pk__in=messageries).delete()
-        return Response(status=204)
-class MessagerieArchivageMultipleAPIListView(LoggingMixin, generics.CreateAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def post(self, request, format=None):
-        messageries = request.data.get("messageries",[])
-        if len(messageries) == 0:
-            return Response({"message":"Veuillez sélectionner un ou plusieurs messageries."},status=400)
-        Messagerie.objects.filter(pk__in=messageries).update(is_deleted=True)
-        return Response(status=204)
-    
-class MessagerieCorbeilleAPIListView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def get(self, request, format=None):
-        items = Messagerie.objects.filter(is_deleted=True).order_by('-pk')
-        limit = self.request.query_params.get('limit')
-        return KgPagination.get_response(limit,items,request,MessagerieGetSerializer)
-    
-
-class MessagerieRestaurationMultipleAPIListView(LoggingMixin, generics.CreateAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def post(self, request, format=None):
-        messageries = request.data.get("messageries",[])
-        if len(messageries) == 0:
-            return Response({"message":"Veuillez sélectionner un ou plusieurs messageries."},status=400)
-        Messagerie.objects.filter(pk__in=messageries).update(is_deleted=False)
-        return Response(status=204)
-
-class MessagerieCorbeilleByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def get(self, request,slug, format=None):
-        limit = self.request.query_params.get('limit')
-        items = Messagerie.objects.filter(is_deleted=True).filter(
-            Q(receivers__slug__in=[slug]) | Q(sender__slug=slug)
-            ).order_by('-pk')
-        search = self.request.query_params.get('q')
-        if search:
-            items = items.filter(Q(sender__nom__icontains=search)| Q(sender__prenom__icontains=search)
-                                 |Q(receiver__nom__icontains=search)| Q(receiver__prenom__icontains=search)
-                                 |Q(subject__icontains=search)
-                                 |Q(content__icontains=search)
-                                )
-        return KgPagination.get_response(limit,items,request,MessagerieGetSerializer)
-
-class MessagerieRecusByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def get(self, request,slug, format=None):
-        items = Messagerie.objects.filter(receivers__slug__in=[slug],is_deleted=False).order_by('-pk')
-        search = self.request.query_params.get('q')
-        if search:
-            items = items.filter(Q(sender__nom__icontains=search)| Q(sender__prenom__icontains=search)
-                                 |Q(receivers__nom__icontains=search)| Q(receivers__prenom__icontains=search)
-                                 |Q(subject__icontains=search)
-                                 |Q(content__icontains=search)
-                                )
-        limit = self.request.query_params.get('limit')
-        unread_messages = items.exclude(userreadmessagerie__user__slug=slug)
-        return KgPagination.get_response_messages_recus(limit,items,request,MessagerieRecusGetSerializer,data=unread_messages.count())
-    
-class MessagerieEnvoyesByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def get(self, request,slug, format=None):
-        limit = self.request.query_params.get('limit')
-        items = Messagerie.objects.filter(sender__slug=slug,is_deleted=False).order_by('-pk')
-        search = self.request.query_params.get('q')
-        if search:
-            items = items.filter(Q(sender__nom__icontains=search)| Q(sender__prenom__icontains=search)
-                                 |Q(receivers__nom__icontains=search)| Q(receivers__prenom__icontains=search)
-                                 |Q(subject__icontains=search)
-                                 |Q(content__icontains=search)
-                                )
-        return KgPagination.get_response(limit,items,request,MessagerieGetSerializer)
-
-class MessagerieAPIListView(LoggingMixin, generics.CreateAPIView):
-    queryset = Messagerie.objects.all()
-    serializer_class = MessagerieSerializer
-
-    def get(self, request, format=None):
-        items = Messagerie.objects.filter(is_deleted=False).order_by('-pk')
-        limit = self.request.query_params.get('limit')
-        return KgPagination.get_response(limit, items, request, MessagerieGetSerializer)
-        #return Response(paginated_data)
-
-    def post(self, request, format=None):
-        self.data = request.data.copy()
-        receivers = request.data.get("receivers", [])
-        if "receivers" in self.data and self.data["receivers"]:
-            if type(self.data["receivers"]) == str:
-                receivers = literal_eval(self.data.get("receivers"))
-                self.data["receivers"] = receivers
-            del self.data['receivers']
-        serializer = MessagerieSerializer(data=self.data)
-        if serializer.is_valid():
-            serializer.save()
-            item = Messagerie.objects.get(pk=serializer.data.get("id"))
-            for receiver in receivers:
-                item.receivers.add(receiver)
-            item.save()
-            response = Response(MessagerieGetSerializer(item).data, status=201)
-            response._resource_closers.append(self.notification)
-            return response
-
-        return TranslatedErrorResponse(serializer.errors, status=400)
-
-    def notification(self):
-        item = self.serializer.instance
-
-        for receiver in item.receivers.all():
-            # Send email
-            subject = "Vous avez reçu un nouveau message."
-            notify.send_email(subject=subject, to=receiver.email, template_src="mail_notification.html",
-                              context_dict={"settings": settings, "item": item})
-
-            # Notif in app
-            Notification.objects.create(receiver=receiver, content=subject, notif_type=MESSAGERIE,
-                                        data=self.serializer.data)
-
-            # Send email to sender
-            if item.message:
-                template_src = 'mail_notification.html'
-                to = item.message.sender.email,
-                subject = item.message.subject if item.message.subject else "Réponse à votre message."
-                context = {
-                    'settings': settings,
-                    "nom": item.nom,
-                    "prenom": item.prenom,
-                    #  "contenu":contenu,
-                    "id": "false",
-                    "item": item,
-                    "sujet": subject,
-                    "year": timezone.now().year
-                }
-                notify.send_email(subject, to, template_src, context)
-
-            # Notif in mobile for the sender
-            if item.message:
-                Notification.objects.create(receiver=item.message.sender, content=subject, notif_type=MESSAGERIE,
-                                            data=self.serializer.data)
 class ThemeAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = Theme.objects.all()
     serializer_class = ThemeSerializer
@@ -1370,20 +894,6 @@ class ForumAPIListView (generics.CreateAPIView):
         return TranslatedErrorResponse(serializer.errors, status=400)
 
 
-class ForumByMobileAPIListView (generics.CreateAPIView):
-    queryset = Forum.objects.all()
-    serializer_class = ForumSerializer
-
-    def get(self, request, format=None):
-        blocked_users = BlockedUser.objects.filter(blocking_user=request.user)
-        blocked_user_ids = blocked_users.values_list('blocked_user', flat=True)
-        items = Forum.objects.order_by('-pk').exclude(author_id__in=blocked_user_ids)
-        #Filtre par theme
-        search = request.GET.get('q')
-        if search:
-            items = items.filter(Theme__slug=search)
-        serializer = ForumGetSerializer(items, many=True)
-        return Response(serializer.data)
 
 class ForumAPIView(generics.RetrieveAPIView):
     queryset = Forum.objects.all()
@@ -1518,8 +1028,6 @@ class CommentForumByUserAPIListView(generics.RetrieveAPIView):
         limit = self.request.query_params.get('limit')
         return KgPagination.get_response(limit,items,request,CommentForumGetSerializer)
 
-    
-
 
 class CommentByForumAPIListView(generics.RetrieveAPIView):
     queryset = CommentForum.objects.all()
@@ -1533,18 +1041,6 @@ class CommentByForumAPIListView(generics.RetrieveAPIView):
             items = items.filter(Q(created_by__nom__icontains=search)
                                  |Q(created_by__prenom__icontains=search))
         return KgPagination.get_response(limit,items,request,CommentForumGetSerializer)
-
-
-class CommentByForumMobileListAPIView(generics.RetrieveAPIView):
-    queryset = CommentForum.objects.all()
-    serializer_class = CommentForumSerializer
-
-    def get(self, request, slug, format=None):
-        blocked_users = BlockedUser.objects.filter(blocking_user=request.user)
-        blocked_user_ids = blocked_users.values_list('blocked_user', flat=True)
-        items = CommentForum.objects.filter(forum__slug=slug).order_by('-pk').exclude(created_by__id__in=blocked_user_ids)
-        serializer = CommentForumGetSerializer(items, many=True)
-        return Response(serializer.data)
 
 
 class SignalementAPIView(LoggingMixin, generics.CreateAPIView):
@@ -1624,7 +1120,6 @@ class SignalementAPIListView(LoggingMixin, generics.CreateAPIView):
                     notif = Notification.objects.create(
                         content=subject,
                         data=serializer.data,
-                        notif_type=SIGNALEMENT,
                         receiver=admin
                     )
                     notif.save()
@@ -1636,7 +1131,6 @@ class SignalementAPIListView(LoggingMixin, generics.CreateAPIView):
                 notif = Notification.objects.create(
                     content=content,
                     data=data,
-                    notif_type=SIGNALEMENT,
                     receiver=item.user
                 )
                 notif.save()
@@ -1644,61 +1138,6 @@ class SignalementAPIListView(LoggingMixin, generics.CreateAPIView):
                 notify.push_notif(to=item.user.token,body=content,data=data) 
             response = Response(serializer.data, status=201)
             response._resource_closers.append(notification)
-            return response
-        return TranslatedErrorResponse(serializer.errors, status=400)
-
-
-
-class BlockedUserAPIView(LoggingMixin, generics.CreateAPIView):
-    queryset = BlockedUser.objects.all()
-    serializer_class = BlockedUserSerializer
-
-    def get(self, request, slug, format=None):
-        try:
-            item = BlockedUser.objects.get(slug=slug)
-            serializer = BlockedUserSerializer(item)
-            return Response(serializer.data)
-        except BlockedUser.DoesNotExist:
-            return Response(status=404)
-
-    def put(self, request, slug, format=None):
-        try:
-            item = BlockedUser.objects.get(slug=slug)
-        except BlockedUser.DoesNotExist:
-            return Response(status=404)
-        serializer = BlockedUserSerializer(item, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return TranslatedErrorResponse(serializer.errors, status=400)
-
-    def delete(self, request, slug, format=None):
-        try:
-            item = BlockedUser.objects.get(slug=slug)
-        except BlockedUser.DoesNotExist:
-            return Response(status=404)
-        item.delete()
-        return Response(status=204)
-
-
-class BlockedUserAPIListView(LoggingMixin, generics.CreateAPIView):
-    queryset = BlockedUser.objects.all()
-    serializer_class = BlockedUserSerializer
-
-    def get(self, request, format=None):
-        items = BlockedUser.objects.order_by('-pk')
-        paginator = PageNumberPagination()
-        result_page = paginator.paginate_queryset(items, request)
-        serializer = BlockedUserGetSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data)
-
-    def post(self, request, format=None):
-        serializer = BlockedUserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            item = BlockedUser.objects.get(pk=serializer.data.get("id"))           
-            response = Response(serializer.data, status=201)
-            # response._resource_closers.append(notification)
             return response
         return TranslatedErrorResponse(serializer.errors, status=400)
 
@@ -1757,6 +1196,8 @@ class ContactAPIListView(LoggingMixin, generics.CreateAPIView):
             response._resource_closers.append(notif_admins)
             return response
         return TranslatedErrorResponse(serializer.errors, status=400)
+
+
 class ContactAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
@@ -1787,10 +1228,10 @@ class ContactAPIView(LoggingMixin, generics.CreateAPIView):
             return Response(status=404)
         item.delete()
         return Response(status=204)
-class ContactAddAPIListView(LoggingMixin, generics.CreateAPIView):
-    permission_classes = (
 
-    )
+
+class ContactAddAPIListView(LoggingMixin, generics.CreateAPIView):
+    permission_classes = ()
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
 
@@ -1822,6 +1263,8 @@ class ContactAddAPIListView(LoggingMixin, generics.CreateAPIView):
             response._resource_closers.append(notify.notify_admins(admins,subject,template_src,context_dict))
             return response
         return TranslatedErrorResponse(serializer.errors, status=400) 
+
+
 class ResponseContactAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = ResponseContact.objects.all()
     serializer_class = ResponseContactSerializer
@@ -1853,6 +1296,8 @@ class ResponseContactAPIView(LoggingMixin, generics.CreateAPIView):
             return Response(status=404)
         item.delete()
         return Response(status=204)
+
+
 class ResponseContactAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = ResponseContact.objects.all()
     serializer_class = ResponseContactSerializer
@@ -1922,6 +1367,7 @@ class NotificationAPIView(LoggingMixin, generics.CreateAPIView):
         item.delete()
         return Response(status=204)
 
+
 class NotificationAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
@@ -1959,7 +1405,6 @@ class NotificationByUserByMobileAPIListView(LoggingMixin, generics.CreateAPIView
         serializer = NotificationGetSerializer(items,many=True)
         return Response(serializer.data)
 
-    
 
 class MessageAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = Message.objects.all()
@@ -1992,6 +1437,7 @@ class MessageAPIView(LoggingMixin, generics.CreateAPIView):
         item.delete()
         return Response(status=204)
 
+
 class MessageAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
@@ -2000,11 +1446,9 @@ class MessageAPIListView(LoggingMixin, generics.CreateAPIView):
         items = Message.objects.order_by('pk')
         limit = self.request.query_params.get('limit')
         return KgPagination.get_response(limit,items,request,MessageGetSerializer)
-    
 
     def post(self, request, format=None):
         self.data = request.data.copy()
-
         try:
             receiver = get_object_or_404(User, id=self.data['receiver'])
             sender = get_object_or_404(User, id=self.data['sender'])
@@ -2069,6 +1513,7 @@ class ConversationAPIView(LoggingMixin, generics.CreateAPIView):
         item.delete()
         return Response(status=204)
 
+
 class ConversationAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
@@ -2086,6 +1531,7 @@ class ConversationAPIListView(LoggingMixin, generics.CreateAPIView):
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
 
+
 class ConversationByUserByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
@@ -2097,6 +1543,7 @@ class ConversationByUserByMobileAPIListView(LoggingMixin, generics.RetrieveAPIVi
         ).order_by('-latest_message_created_at')
         serializer = ConversationGetSerializer(items,many=True,context={"sender":slug})
         return Response(serializer.data)
+
 
 class MessageByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Conversation.objects.all()
@@ -2156,147 +1603,13 @@ class ScriptMessageAPIListView(LoggingMixin, generics.RetrieveAPIView):
         limit = self.request.query_params.get('limit')
         return KgPagination.get_response(limit,items,request,MessageGetSerializer)
 
-
-
-class DashboardAPIListView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-    def get(self, request, format=None):
-        date_ = request.GET.get("date")
-        filter_by = request.GET.get("filter","week")
-        filter_value = request.GET.get("value","patients")
-        date = timezone.now().strptime(date_, '%d-%m-%Y').date() if date_ else timezone.now().date()
-        users = User.objects.exclude(Q(user_type=DELETED)|Q(user_type=ADMIN)|Q(is_superuser=True))
-        patients = Patient.objects.exclude(user_type=DELETED)
-        medecins = Medecin.objects.exclude(user_type=DELETED)
-        rdvs = Rdv.objects.all()
-        # Calculate start and end dates for current week and month
-        start_of_week = date - timedelta(days=date.weekday())
-        end_of_week = start_of_week + timedelta(days=6)
-        start_of_month = date.replace(day=1)
-        end_of_month = start_of_month.replace(day=28) + timedelta(days=4)
-
-        # Calculate user counts
-        users_in_current_month = users.filter(created_at__gte=start_of_month, created_at__lte=end_of_month)
-        users_in_current_week = users.filter(created_at__gte=start_of_week, created_at__lte=end_of_week)
-        graph = []
-        if filter_by == "week":
-            start_date = date - timedelta(days=date.weekday())
-            current_date = start_date
-            end_date = start_date + timedelta(days=6)
-            step = timedelta(days=1)
-            while current_date <= end_date:
-                user_count = patients.filter(created_at__gte=current_date, created_at__lte=current_date + step).count()
-                graph.append({"date": current_date, "user_count": user_count})
-                current_date += step
-        elif filter_by == "month":
-            start_date = date.replace(day=1)
-            end_date = start_date.replace(day=28) + timedelta(days=4)
-            step = timedelta(days=14)
-            current_date = start_date
-            while current_date <= end_date:
-                interval_end_date = current_date + timedelta(days=13)  # Bi-weekly interval
-                user_count = patients.filter(created_at__gte=current_date, created_at__lte=interval_end_date).count()
-                interval_label = f"Du {current_date.strftime('%d-%m-%Y')} au {interval_end_date.strftime('%d-%m-%Y')}"
-                graph.append({"date": interval_label, "user_count": user_count})
-                current_date = interval_end_date + timedelta(days=1)
-        elif filter_by == "year":
-            start_date = date.replace(month=1, day=1)
-            end_date = date.replace(month=12, day=31)
-            step = timedelta(days=30)
-            current_date = start_date
-            while current_date <= end_date:
-                interval_end_date = current_date + step
-                if filter_by == "year":
-                    year = current_date.year
-                    user_count = patients.filter(created_at__year=year, created_at__month=current_date.month).count()
-                    locale.setlocale(locale.LC_ALL, 'fr_FR')
-                    graph.append({"date": f"{current_date.strftime('%B %Y').capitalize()}", "user_count": user_count})
-                    current_date = interval_end_date + timedelta(days=1)
-        if filter_value == "medecins":
-            if filter_by == "week":
-                start_date = date - timedelta(days=date.weekday())
-                current_date = start_date
-                end_date = start_date + timedelta(days=6)
-                step = timedelta(days=1)
-                while current_date <= end_date:
-                    user_count = users.filter(created_at__gte=current_date, created_at__lte=current_date + step).count()
-                    graph.append({"date": current_date, "user_count": user_count})
-                    current_date += step
-            elif filter_by == "month":
-                start_date = date.replace(day=1)
-                end_date = start_date.replace(day=28) + timedelta(days=4)
-                step = timedelta(days=14)
-                current_date = start_date
-                while current_date <= end_date:
-                    interval_end_date = current_date + timedelta(days=13)  # Bi-weekly interval
-                    user_count = users.filter(created_at__gte=current_date, created_at__lte=interval_end_date).count()
-                    interval_label = f"Du {current_date.strftime('%d-%m-%Y')} au {interval_end_date.strftime('%d-%m-%Y')}"
-                    graph.append({"date": interval_label, "user_count": user_count})
-                    current_date = interval_end_date + timedelta(days=1)
-            elif filter_by == "year":
-                start_date = date.replace(month=1, day=1)
-                end_date = date.replace(month=12, day=31)
-                step = timedelta(days=30)
-                current_date = start_date
-                while current_date <= end_date:
-                    interval_end_date = current_date + step
-                    if filter_by == "year":
-                        year = current_date.year
-                        user_count = users.filter(created_at__year=year, created_at__month=current_date.month).count()
-                        locale.setlocale(locale.LC_ALL, 'fr_FR')
-                        graph.append({"date": f"{current_date.strftime('%B %Y').capitalize()}", "user_count": user_count})
-                        current_date = interval_end_date + timedelta(days=1)
-        elif filter_value == "rdvs":
-            if filter_by == "week":
-                start_date = date - timedelta(days=date.weekday())
-                current_date = start_date
-                end_date = start_date + timedelta(days=6)
-                step = timedelta(days=1)
-                while current_date <= end_date:
-                    user_count = rdvs.filter(created_at__gte=current_date, created_at__lte=current_date + step).count()
-                    graph.append({"date": current_date, "user_count": user_count})
-                    current_date += step
-            elif filter_by == "month":
-                start_date = date.replace(day=1)
-                end_date = start_date.replace(day=28) + timedelta(days=4)
-                step = timedelta(days=14)
-                current_date = start_date
-                while current_date <= end_date:
-                    interval_end_date = current_date + timedelta(days=13)  # Bi-weekly interval
-                    user_count = rdvs.filter(created_at__gte=current_date, created_at__lte=interval_end_date).count()
-                    interval_label = f"Du {current_date.strftime('%d-%m-%Y')} au {interval_end_date.strftime('%d-%m-%Y')}"
-                    graph.append({"date": interval_label, "user_count": user_count})
-                    current_date = interval_end_date + timedelta(days=1)
-            elif filter_by == "year":
-                start_date = date.replace(month=1, day=1)
-                end_date = date.replace(month=12, day=31)
-                step = timedelta(days=30)
-                current_date = start_date
-                while current_date <= end_date:
-                    interval_end_date = current_date + step
-                    if filter_by == "year":
-                        year = current_date.year
-                        user_count = rdvs.filter(created_at__year=year, created_at__month=current_date.month).count()
-                        locale.setlocale(locale.LC_ALL, 'fr_FR')
-                        graph.append({"date": f"{current_date.strftime('%B %Y').capitalize()}", "user_count": user_count})
-                        current_date = interval_end_date + timedelta(days=1)
-        return Response({
-            # "users_in_current_month":users_in_current_month.count(),
-            # "users_in_current_week":users_in_current_week.count(),
-            "patients":patients.count(),
-            "medecins":medecins.count(),
-            "rdvs":rdvs.count(),
-            "graph":graph,
-        })
     
 
 class CallbackIntechAPIView(LoggingMixin,generics.CreateAPIView):
     permission_classes = (
     )
-    queryset = Abonnement.objects.all()
-    serializer_class = AbonnementSerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
     def post(self, request, format=None):
         data=request.data
@@ -2345,6 +1658,7 @@ class NewsletterAPIView(LoggingMixin, generics.CreateAPIView):
         item.delete()
         return Response(status=204)
 
+
 class NewsletterAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Newsletter.objects.all()
     serializer_class = NewsletterSerializer
@@ -2362,13 +1676,13 @@ class NewsletterAPIListView(LoggingMixin, generics.CreateAPIView):
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
 
+
 class NewsletterVisitorAPIListView(LoggingMixin, generics.CreateAPIView):
     permission_classes = (
 
     )
     queryset = Newsletter.objects.all()
     serializer_class = NewsletterSerializer
-
 
     def post(self, request, format=None):
         serializer = NewsletterSerializer(data=request.data)

@@ -118,19 +118,16 @@ DATABASES = {
 
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
 
-        'NAME': 'boilerplate',
+        'NAME': 'mas_oul',
 
-        'USER': 'boilerplate',
+        'USER': 'mas_oul',
 
-        'PASSWORD': 'Volkeno@2023!',
+        'PASSWORD': 'Volkeno@2024!',
 
-        # 'HOST': 'localhost',
-        'HOST': 'db',
+        'HOST': 'localhost',
+        # 'HOST': 'db',
 
         'PORT': '5432',
-        'TEST': {
-            'NAME': 'boilerplate_test',
-        },
     }
 }
 
@@ -198,7 +195,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+# USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -259,6 +256,7 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'boilerplate@boilerplate-api.volkeno-engineering.click'
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+# EMAIL_HOST_USER = 'no-reply@adafri-api.volkeno-engineering.click'
 
 
 
@@ -273,14 +271,6 @@ if TARGET_ENV == "dev":
     API_URL = 'https://boilerplate-api.volkeno-engineering.click'
     API_KEY = os.environ.get('API_KEY')
 
-elif TARGET_ENV == "staging":
-    REDIRECT_URL = 'https://boilerplate.volkeno-engineering.click'
-    WEB_URL = 'https://boilerplate.volkeno-engineering.click'
-    API_URL = 'https://boilerplate-api.volkeno-engineering.click'
-elif TARGET_ENV == "prod":
-    REDIRECT_URL = 'https://boilerplate.volkeno-engineering.click'
-    WEB_URL = 'https://boilerplate.volkeno-engineering.click'
-    API_URL = 'https://boilerplate-api.volkeno-engineering.click'
 
 JAZZMIN_SETTINGS = {
     "site_title": f"{APP_NAME} admin",

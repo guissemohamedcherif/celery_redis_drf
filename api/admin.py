@@ -32,11 +32,6 @@ class UserAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(User)
-admin.site.register(Offre)
 admin.site.register(ModePaiement)
-admin.site.register(Abonnement)
-admin.site.register(Specialite)
 admin.site.register(CallbackPayment)
 admin.site.register(Notification)
-admin.site.register(Medicament)
-admin.site.register(Messagerie)

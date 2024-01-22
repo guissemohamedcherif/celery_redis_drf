@@ -9,8 +9,6 @@ urlpatterns = [
   url(r'^auth/refresh-token', refresh_jwt_token),
   url(r'^auth/login/$', views.LoginView.as_view()),
   url(r'^auth/register/$', views.UserRegisterAPIView.as_view()),
-  url(r'^auth/patient/register/$', views.PatientRegisterAPIView.as_view()),
-  url(r'^auth/medecin/register/$', views.MedecinRegisterAPIView.as_view()),
   url(r'^auth/request-password-reset/$',
       views.PasswordResetRequestView.as_view()),
   url(r'^auth/reset-password/$', views.PasswordResetView.as_view()),
@@ -38,11 +36,6 @@ urlpatterns = [
   url(r'^user/admins/(?P<slug>[\w\-]+)/$', views.AdminUserAPIView.as_view()),
   url(r'^user/admins/$', views.AdminUserAPIListView.as_view()),
 
-  url(r'^specialites/(?P<slug>[\w\-]+)/$', views.SpecialiteAPIView.as_view()),
-  url(r'^specialites/$', views.SpecialiteAPIListView.as_view()),
-  url(r'^import_specialites/$', views.ImportSpecialiteExcelView.as_view()),
-
-
   url(r'^callback/intech/$', views.CallbackIntechAPIView.as_view()),
 
   url(r'^newsletters/(?P<slug>[\w\-]+)/$', views.NewsletterAPIView.as_view()),
@@ -60,10 +53,5 @@ urlpatterns = [
   url(r'^user/(?P<slug>[\w\-]+)/messages/$', views.MessageByUserAPIListView.as_view()),
   url(r'^messages/$', views.MessageAPIListView.as_view()),
   url(r'^messages/(?P<slug>[\w\-]+)/$', views.MessageAPIView.as_view()),
-
-
-
-
-  
 
 ]
