@@ -180,7 +180,7 @@ class User(AbstractBaseUser, PermissionsMixin, SafeDeleteModel):
 
     USERNAME_FIELD = 'email'
     # these field are required on registering
-    REQUIRED_FIELDS = ['name', 'phone']
+    REQUIRED_FIELDS = ['prenom', 'nom', 'phone']
     
     class Meta:
         verbose_name = ('user')

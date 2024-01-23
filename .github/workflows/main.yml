@@ -19,11 +19,11 @@ jobs:
       - name: Checkout dev
         uses: actions/checkout@v1
       
-      # - name: Build Test and deploy images on DigitalOcean        
-      #   run: |
-      #     sshpass -V
-      #     export SSHPASS=${{ secrets.DROPLET_DEV_PASSWORD }}
-      #     sshpass -e scp -o stricthostkeychecking=no -r * root@${{ secrets.DROPLET_DEV_HOST }}:/var/www/boilerplate-django
-      #     sshpass -e  ssh root@${{ secrets.DROPLET_DEV_HOST }} 'docker-compose -f /var/www/boilerplate-django/docker-compose.prod.yml  up -d --build'
-      #     sshpass -e ssh root@${{ secrets.DROPLET_DEV_HOST }} 'docker-compose -f /var/www/boilerplate-django/docker-compose.prod.yml exec -T web python manage.py test'
-      #     sshpass -e ssh root@${{ secrets.DROPLET_DEV_HOST }} 'docker-compose -f /var/www/boilerplate-django/docker-compose.prod.yml exec -T web python manage.py migrate'
+      - name: Build Test and deploy images on DigitalOcean        
+        run: |
+          sshpass -V
+          export SSHPASS=${{ secrets.DROPLET_DEV_PASSWORD }}
+          sshpass -e scp -o stricthostkeychecking=no -r * root@${{ secrets.DROPLET_DEV_HOST }}:/var/www/masoul-django
+          sshpass -e  ssh root@${{ secrets.DROPLET_DEV_HOST }} 'docker-compose -f /var/www/masoul-django/docker-compose.prod.yml  up -d --build'
+          sshpass -e ssh root@${{ secrets.DROPLET_DEV_HOST }} 'docker-compose -f /var/www/masoul-django/docker-compose.prod.yml exec -T web python manage.py test'
+          sshpass -e ssh root@${{ secrets.DROPLET_DEV_HOST }} 'docker-compose -f /var/www/masoul-django/docker-compose.prod.yml exec -T web python manage.py migrate'
