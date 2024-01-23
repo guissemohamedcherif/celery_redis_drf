@@ -33,7 +33,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: mas_oul
       PGADMIN_DEFAULT_PASSWORD: Volkeno@2024!
     ports:
-      - "5050:80"
+      - "5051:80"
     depends_on:
       - db
     networks:
@@ -44,7 +44,7 @@ services:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/mediafiles
     ports:
-      - 5223:80
+      - 5224:80
     depends_on:
       - web
     networks:
