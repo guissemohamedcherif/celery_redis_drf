@@ -4,7 +4,7 @@ name: Continuous Integration and Delivery
 on:
   push:
     branches: 
-      - prod
+      - dev
 
 jobs:
   test_django:
@@ -14,9 +14,9 @@ jobs:
     name: Deploy to DigitalOcean
     runs-on: ubuntu-latest
     needs: [test_django]
-    if: github.ref == 'refs/heads/prod'
+    if: github.ref == 'refs/heads/dev'
     steps:
-      - name: Checkout prod
+      - name: Checkout dev
         uses: actions/checkout@v1
       
       - name: Build Test and deploy images on DigitalOcean        

@@ -5,12 +5,12 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.prod
-    command: gunicorn backend.wsgi:application --bind 0.0.0.0:8223
+    command: gunicorn backend.wsgi:application --bind 0.0.0.0:8229
     volumes:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/mediafiles
     expose:
-      - 8228
+      - 8229
     env_file:
       - ./.env.prod
     depends_on:
@@ -26,12 +26,12 @@ services:
     networks:
       - pg-network
   pgadmin:
-    container_name: pgadmin_boilerplate_container
+    container_name: pgadmin_masoul_container
     image: dpage/pgadmin4
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: mas_oul
-      PGADMIN_DEFAULT_PASSWORD: Volkeno@2023!
+      PGADMIN_DEFAULT_PASSWORD: Volkeno@2024!
     ports:
       - "5050:80"
     depends_on:

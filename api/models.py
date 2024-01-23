@@ -152,7 +152,8 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin, SafeDeleteModel):
     slug = models.UUIDField(default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=1000)
+    prenom = models.CharField(max_length=500, blank=True, null=True)
+    nom = models.CharField(max_length=500, blank=True, null=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20,validators=[isnumbervalidator],unique=True)
     civilite = models.CharField(max_length=50, choices=USER_SEXE,default=HOMME)
@@ -167,9 +168,12 @@ class User(AbstractBaseUser, PermissionsMixin, SafeDeleteModel):
     deletion_id = models.CharField(max_length=1000, blank=True, null=True)
     deletion_type = models.CharField(max_length=50,choices=USER_TYPES,blank=True,null=True)
     date_de_naissance = models.DateField(null=True)
+    longitude = models.CharField(max_length=500, blank=True, null=True)
+    latitude = models.CharField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     condition = models.BooleanField(default=False)
+    bloquer = models.BooleanField(default=False)
     created_by = models.ForeignKey("User", on_delete=models.CASCADE,
                                    blank=True, null=True)
     objects = UserManager()

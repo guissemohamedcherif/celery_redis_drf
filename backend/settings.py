@@ -254,21 +254,19 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'sauron.o2switch.net'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'boilerplate@boilerplate-api.volkeno-engineering.click'
+EMAIL_HOST_USER = 'masoul-api@volkeno-engineering.click'
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-# EMAIL_HOST_USER = 'no-reply@adafri-api.volkeno-engineering.click'
-
 
 
 DSN = "https://3bda9715540b4864a9d8b7c29344b9fc@app-sentry.withvolkeno.com/2"
-APP_NAME = "BOILERPLATE"
+APP_NAME = "MASOUL"
 
 
 TARGET_ENV = "dev"
 if TARGET_ENV == "dev":
     REDIRECT_URL = 'https://boilerplate.volkeno-engineering.click'
     WEB_URL = 'https://boilerplate.volkeno-engineering.click'
-    API_URL = 'https://boilerplate-api.volkeno-engineering.click'
+    API_URL = 'https://masoul-api.volkeno-engineering.click'
     API_KEY = os.environ.get('API_KEY')
 
 
