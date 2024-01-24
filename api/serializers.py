@@ -5,7 +5,6 @@ from icecream import ic
 
 
 class UserSerializer(ModelSerializer):
-
     class Meta:
         model = User
         exclude = (
@@ -17,8 +16,6 @@ class UserSerializer(ModelSerializer):
         user.is_active = True
         user.save()
         return user
-    
-
 
 
 class UserGetSerializer(serializers.ModelSerializer):
@@ -44,65 +41,36 @@ class UserRegisterSerializer(ModelSerializer):
         return user
     
 
-
-class PatientRegisterSerializer(ModelSerializer):
+class VendeurRegisterSerializer(ModelSerializer):
 
     class Meta:
         model = User
         exclude = (
-            'user_permissions', 'groups', 'is_superuser', 'is_staff','date_de_naissance','nationnalite',"cni","ordre_des_medecins",
-            "pays_ordre_des_medecins","cv","taux_horaire","specialite","deletion_id","deletion_type","created_by","is_archive","is_active","is_suspended")
+            'user_permissions', 'groups', 'is_superuser', 'is_staff', 'deletion_id',
+            'deletion_type', 'created_by', 'is_archive', 'is_active')
 
     def create(self, validated_data, **extra_fields):
         user = self.Meta.model(**validated_data)
         user.set_password(validated_data['password'])
         user.is_active = True
-        user.user_type = PATIENT
-        user.save()
-        return user
-    
-
-
-class MedecinRegisterSerializer(ModelSerializer):
-
-    class Meta:
-        model = User
-        exclude = (
-            'user_permissions', 'groups', 'is_superuser', 'is_staff',"deletion_id","deletion_type","created_by","is_archive","is_active","is_suspended")
-
-    def create(self, validated_data, **extra_fields):
-        user = self.Meta.model(**validated_data)
-        user.set_password(validated_data['password'])
-        user.is_active = True
-        user.user_type = MEDECIN
+        user.user_type = VENDEUR
         user.save()
         return user
 
 
-class MedecinSerializer(ModelSerializer):
+class VisiteurRegisterSerializer(ModelSerializer):
 
     class Meta:
         model = User
         exclude = (
-            'user_permissions', 'groups', 'is_superuser','is_staff','user_type')
+            'user_permissions', 'groups', 'is_superuser', 'is_staff', 'deletion_id',
+            'deletion_type', 'created_by', 'is_archive', 'is_active')
+
     def create(self, validated_data, **extra_fields):
         user = self.Meta.model(**validated_data)
         user.set_password(validated_data['password'])
         user.is_active = True
-        user.user_type = MEDECIN
-        user.save()
-        return user
-
-class UserPostSerializer(ModelSerializer):
-
-    class Meta:
-        model = User
-        exclude = (
-            'user_permissions', 'groups', 'is_superuser', 'is_staff','deletion_id','deletion_type','password_reset_count','password','user_type')
-    def create(self, validated_data, **extra_fields):
-        user = self.Meta.model(**validated_data)
-        user.set_password(validated_data['password'])
-        user.is_active = True
+        user.user_type = VISITEUR
         user.save()
         return user
 
@@ -125,29 +93,13 @@ class AdminUserSerializer(ModelSerializer):
         return user
     
 
-class AdminUserPostSerializer(ModelSerializer):
-
-    class Meta:
-        model = AdminUser
-        exclude = (
-            'user_permissions', 'groups', 'is_superuser','password','slug','is_staff')
-
-    def create(self, validated_data, **extra_fields):
-        user = self.Meta.model(**validated_data)
-        user.set_password(validated_data['password'])
-        user.user_type = ADMIN
-        user.admin_type = ADMIN
-        user.is_active = True
-        user.save()
-        return user
-    
-
 class AdminUserGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminUser
         exclude = (
             'user_permissions', 'groups', 'is_superuser',
             'is_staff', 'password')
+
 
 class ModePaiementSerializer(ModelSerializer):
 
@@ -392,7 +344,13 @@ class ConditionSerializer(serializers.ModelSerializer):
 
 
 class NewsletterSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Newsletter
+        fields = '__all__'
+
+
+class BlockUserSerializer(ModelSerializer):
+    causes = serializers.CharField()
+    class Meta:
+        model = User
         fields = '__all__'
