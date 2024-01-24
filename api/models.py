@@ -22,12 +22,14 @@ from api.validators import *
 ADMIN = 'admin'
 SUPERADMIN = 'superadmin'
 USER = 'user'
-COMMERCANT = 'commmercant'
+VISITEUR = 'visiteur'
+VENDEUR = 'vendeur'
 DELETED = 'deleted'
 
 USER_TYPES = (
     (USER, USER),
-    (COMMERCANT, COMMERCANT),
+    (VISITEUR, VISITEUR),
+    (VENDEUR, VENDEUR),
     (ADMIN, ADMIN),
     (SUPERADMIN, SUPERADMIN),
 )
@@ -158,24 +160,26 @@ class User(AbstractBaseUser, PermissionsMixin, SafeDeleteModel):
     phone = models.CharField(max_length=20,validators=[isnumbervalidator],unique=True)
     civilite = models.CharField(max_length=50, choices=USER_SEXE,default=HOMME)
     adress = models.TextField(null=True,blank=True)
+    date_de_naissance = models.DateField(null=True)
+    longitude = models.CharField(max_length=500, blank=True, null=True)
+    latitude = models.CharField(max_length=500, blank=True, null=True)
+    num_cr = models.CharField(max_length=500, blank=True, null=True)
+    cni = models.CharField(max_length=500, blank=True, null=True)
+    ninea = models.CharField(max_length=500, blank=True, null=True)
+    user_type = models.CharField(max_length=50, choices=USER_TYPES,default=USER)
     is_active = models.BooleanField(('active'), default=True)
+    condition = models.BooleanField(default=False)
+    bloquer = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_archive = models.BooleanField(default=False)
-    user_type = models.CharField(max_length=50, choices=USER_TYPES,default=USER)
     avatar = models.ImageField(default="avatars/default.png", upload_to='avatars/', null=True, blank=True)
     password_reset_count = models.IntegerField(null=True, blank=True, default=0)
     first_connexion = models.BooleanField(default=False)
     deletion_id = models.CharField(max_length=1000, blank=True, null=True)
     deletion_type = models.CharField(max_length=50,choices=USER_TYPES,blank=True,null=True)
-    date_de_naissance = models.DateField(null=True)
-    longitude = models.CharField(max_length=500, blank=True, null=True)
-    latitude = models.CharField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    condition = models.BooleanField(default=False)
-    bloquer = models.BooleanField(default=False)
-    created_by = models.ForeignKey("User", on_delete=models.CASCADE,
-                                   blank=True, null=True)
+    created_by = models.ForeignKey("User", on_delete=models.CASCADE, blank=True, null=True)
     objects = UserManager()
 
     USERNAME_FIELD = 'email'

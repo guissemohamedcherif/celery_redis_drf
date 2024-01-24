@@ -103,6 +103,8 @@ class LoginView(LoggingMixin, generics.CreateAPIView):
                     search_item = User.objects.filter(email__iexact=email)
                     if search_item.exists():
                         item = search_item.last()
+                        if item.bloquer == True:
+                            return Response({"message": f"Votre compte a été bloqué. Pour plus d'informations, veuillez contacter l'équipe de {APP_NAME}."}, status=400)
                         if item and item.email != email:
                             email = item.email
                             request.data['email'] = email
@@ -379,15 +381,380 @@ class PasswordResetAPIListView(LoggingMixin, generics.CreateAPIView):
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
 
+
+class VendeurRegisterAPIView(LoggingMixin, generics.CreateAPIView):
+    permission_classes = ()
+    queryset = User.objects.all()
+    serializer_class = VendeurRegisterSerializer
+
+    REGEX_PATTERN = REGEX
+
+    def do_after(self, item):
+        """
+        Perform actions after user registration.
+        """
+        contenu = f"Félicitations! Votre compte {item.user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
+        subject = f"Bienvenu(e)🎉 sur  {APP_NAME}"
+        to = item.email
+        template_src = 'mail_notification.html'
+        name = item.prenom if item.prenom else ""
+        name = name + " " + item.nom if item.nom else name
+        context = {
+            'user_type': item.user_type.upper(),
+            'email': item.email,
+            "name":name,
+            'settings': settings,
+            "id":"false",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to, template_src, context)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST request for user registration.
+        """
+        pattern = re.compile(self.REGEX_PATTERN)
+        if ('password' in request.data and request.data['password']
+           and not pattern.match(request.data['password'])):
+            return Response({ "message": "Le mot de passe doit avoir au moins au minimum 8 caractères,1 caractère en majuscule, 1 caractère en minuscule, 1 nombre et 1 caractère spéciale"
+                    }, status=400)
+        
+        email = request.data.get("email")
+        if User.objects.filter(email=email).first():
+            return Response({"message":"Cet utilisateur existe déja dans la base de donnée"},status=400)
+        serializer = VendeurRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(UserGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class VisiteurRegisterAPIView(LoggingMixin, generics.CreateAPIView):
+    permission_classes = ()
+    queryset = User.objects.all()
+    serializer_class = VisiteurRegisterSerializer
+
+    REGEX_PATTERN = REGEX
+
+    def do_after(self, item):
+        """
+        Perform actions after user registration.
+        """
+        contenu = f"Félicitations! Votre compte {item.user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
+        subject = f"Bienvenu(e)🎉 sur  {APP_NAME}"
+        to = item.email
+        template_src = 'mail_notification.html'
+        name = item.prenom if item.prenom else ""
+        name = name + " " + item.nom if item.nom else name
+        context = {
+            'user_type': item.user_type.upper(),
+            'email': item.email,
+            "name":name,
+            'settings': settings,
+            "id":"false",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to, template_src, context)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST request for user registration.
+        """
+        pattern = re.compile(self.REGEX_PATTERN)
+        if ('password' in request.data and request.data['password']
+           and not pattern.match(request.data['password'])):
+            return Response({ "message": "Le mot de passe doit avoir au moins au minimum 8 caractères,1 caractère en majuscule, 1 caractère en minuscule, 1 nombre et 1 caractère spéciale"
+                    }, status=400)
+        
+        email = request.data.get("email")
+        if User.objects.filter(email=email).first():
+            return Response({"message":"Cet utilisateur existe déja dans la base de donnée"},status=400)
+        serializer = VisiteurRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(UserGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class VisiteurCreateAPIView(LoggingMixin, generics.CreateAPIView):
+    permission_classes = ()
+    queryset = User.objects.all()
+    serializer_class = VisiteurRegisterSerializer
+
+    REGEX_PATTERN = REGEX
+
+    def do_after(self, item, password):
+        """
+        Perform actions after user registration.
+        """
+        contenu = f"Félicitations! Votre compte {item.user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
+        subject = f"Bienvenu(e)🎉 sur  {APP_NAME}"
+        to = item.email
+        template_src = 'mail_notification.html'
+        name = item.prenom if item.prenom else ""
+        name = name + " " + item.nom if item.nom else name
+        context = {
+            'user_type': item.user_type.upper(),
+            'email': item.email,
+            "name":name,
+            'settings': settings,
+            "password": password,
+            "id":"true",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to, template_src, context)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST request for user registration.
+        """
+        pattern = re.compile(self.REGEX_PATTERN)
+        self.data = request.data.copy()
+        pwo = PassGen(minlen=8, minuc=1, minlc=1, minnum=1, minsc=1)
+        password = pwo.generate()
+        self.data['password'] = password
+        
+        email = request.data.get("email")
+        if User.objects.filter(email=email).first():
+            return Response({"message":"Cet utilisateur existe déja dans la base de donnée"},status=400)
+        serializer = VisiteurRegisterSerializer(data=self.data)
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(UserGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item, password))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class VendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VENDEUR, bloquer=False)
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,UserGetSerializer)
+
+
+class VendeurBlockedAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VENDEUR, bloquer=True)
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,UserGetSerializer)
+
+
+class VendeurBlockedMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VENDEUR, bloquer=True)
+        return Response(UserGetSerializer(items, many=True).data)
+
+
+class VendeurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VENDEUR, bloquer=False)
+        return Response(UserGetSerializer(items, many=True).data)
+
+
+class VisiteurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VISITEUR, bloquer=False)
+        return Response(UserGetSerializer(items, many=True).data)
+
+
+class VisiteurAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VISITEUR, bloquer=False)
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,UserGetSerializer)
+
+
+class VisiteurBlockedAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VISITEUR, bloquer=True)
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,UserGetSerializer)
+
+
+class VisiteurBlockedMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, format=None):
+        items = User.objects.filter(user_type=VISITEUR, bloquer=True)
+        return Response(UserGetSerializer(items, many=True).data)
+
+
+class BlockUserAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = BlockUserSerializer
+    
+    def do_after(self, item, causes):
+        """
+        Perform actions after user registration.
+        """
+        contenu = f"Votre compte {item.user_type.upper()} sur {APP_NAME} vient d’être bloqué. \n"
+        if causes != "":
+           contenu = contenu + f"CAUSES: {causes}" 
+        subject = f"Compte bloqué sur  {APP_NAME}"
+        to = item.email
+        template_src = 'mail_notification.html'
+        name = item.prenom if item.prenom else ""
+        name = name + " " + item.nom if item.nom else name
+        context = {
+            'user_type': item.user_type.upper(),
+            'email': item.email,
+            "name":name,
+            'settings': settings,
+            "id":"false",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to, template_src, context)
+
+    def get(self, request, slug, format=None):
+        try:
+            item = User.objects.get(slug=slug)
+            causes = request.GET.get('causes')
+            if not causes:
+                causes = ""
+            item.is_active = False
+            item.bloquer = True
+            item.save()
+            serializer = UserGetSerializer(item)
+            response = Response({
+                "message": "Utilisateur bloqué avec succés.",
+                "data": serializer.data
+                })
+            response._resource_closers.append(self.do_after(item, causes))
+            return response
+        except User.DoesNotExist:
+            return Response(status=404)
+
+
+class UnBlockUserAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
+    def do_after(self, item):
+        """
+        Perform actions after user registration.
+        """
+        contenu = f"Votre compte {item.user_type.upper()} sur {APP_NAME} vient d’être bloqué."
+        subject = f"Compte débloqué sur  {APP_NAME}"
+        to = item.email
+        template_src = 'mail_notification.html'
+        name = item.prenom if item.prenom else ""
+        name = name + " " + item.nom if item.nom else name
+        context = {
+            'user_type': item.user_type.upper(),
+            'email': item.email,
+            "name":name,
+            'settings': settings,
+            "id":"false",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to, template_src, context)
+
+    def get(self, request, slug, format=None):
+        try:
+            item = User.objects.get(slug=slug)
+            item.is_active = True
+            item.bloquer = False
+            item.save()
+            serializer = UserGetSerializer(item)
+            response = Response({
+                "message": "Utilisateur débloqué avec succés.",
+                "data": serializer.data
+                })
+            response._resource_closers.append(self.do_after(item))
+            return response
+        except User.DoesNotExist:
+            return Response(status=404)
+
+
+class VendeurCreateAPIView(LoggingMixin, generics.CreateAPIView):
+    permission_classes = ()
+    queryset = User.objects.all()
+    serializer_class = VendeurRegisterSerializer
+
+    REGEX_PATTERN = REGEX
+
+    def do_after(self, item, password):
+        """
+        Perform actions after user registration.
+        """
+        contenu = f"Félicitations! Votre compte {item.user_type.upper()} sur {APP_NAME} vient d’être créé ! 🎉🎉"
+        subject = f"Bienvenu(e)🎉 sur  {APP_NAME}"
+        to = item.email
+        template_src = 'mail_notification.html'
+        name = item.prenom if item.prenom else ""
+        name = name + " " + item.nom if item.nom else name
+        context = {
+            'user_type': item.user_type.upper(),
+            'email': item.email,
+            "name":name,
+            'settings': settings,
+            "password": password,
+            "id":"true",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to, template_src, context)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST request for user registration.
+        """
+        pattern = re.compile(self.REGEX_PATTERN)
+        self.data = request.data.copy()
+        pwo = PassGen(minlen=8, minuc=1, minlc=1, minnum=1, minsc=1)
+        password = pwo.generate()
+        self.data['password'] = password
+        
+        email = request.data.get("email")
+        if User.objects.filter(email=email).first():
+            return Response({"message":"Cet utilisateur existe déja dans la base de donnée"},status=400)
+        serializer = VendeurRegisterSerializer(data=self.data)
+        if serializer.is_valid():
+            item = serializer.save()
+            response = Response(UserGetSerializer(item).data, status=201)
+            response._resource_closers.append(self.do_after(item, password))
+            return response
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
 class AccountActivationUserView(LoggingMixin, generics.CreateAPIView):
     permission_classes = (
     )
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    
-
-        
     def get(self, request, *args, **kwargs):
         if 'code' not in kwargs or kwargs['code'] is None:
             return Response(status=404)
