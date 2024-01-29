@@ -118,6 +118,12 @@ MOYEN_PAIEMENT = (
     ('BANK_CARD_API_CASH_OUT', 'CARTE_BANCAIRE'),
 )
 
+PUBLISHED = 'published'
+DRAFTED = 'drafted'
+STATUS_PRODUIT = (
+    (DRAFTED, DRAFTED),
+    (DRAFTED, DRAFTED),
+)
 
 class MyModelManager(SafeDeleteManager):
     _safedelete_visibility = DELETED_INVISIBLE
@@ -167,6 +173,7 @@ class User(AbstractBaseUser, PermissionsMixin, SafeDeleteModel):
     cni = models.CharField(max_length=500, blank=True, null=True)
     ninea = models.CharField(max_length=500, blank=True, null=True)
     user_type = models.CharField(max_length=50, choices=USER_TYPES,default=USER)
+    points = models.IntegerField(default=0)
     is_active = models.BooleanField(('active'), default=True)
     condition = models.BooleanField(default=False)
     bloquer = models.BooleanField(default=False)
@@ -409,3 +416,58 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender} to {self.receiver} in {self.conversation}"
+
+
+class Image(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    picture = models.ImageField()
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Categorie(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    nom = models.CharField(max_length=200)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE,
+                                   blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'<Categorie: {self.pk},nom: {self.nom}>'
+
+
+class Produit(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    nom = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    prix = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
+    quantite = models.IntegerField(default=0)
+    points = models.IntegerField(default=0)
+    discount = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
+    categorie = models.ForeignKey(Categorie,on_delete=models.CASCADE)
+    couverture = models.ImageField(null=True,blank=True)
+    images = models.ManyToManyField(Image,blank=True,default=[])
+    tags = JSONField(default=dict, blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_PRODUIT,
+                              default=PUBLISHED)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE,
+                                   blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'<Produit: {self.pk},nom: {self.nom}>'
+
+
+class Voucher(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    prix = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
+    points = models.IntegerField(default=0)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE,
+                                   blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'<Categorie: {self.pk},nom: {self.nom}>'

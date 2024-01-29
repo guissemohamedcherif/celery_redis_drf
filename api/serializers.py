@@ -354,3 +354,35 @@ class BlockUserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+
+
+class ImageSerializer(ModelSerializer):
+    class Meta:
+        model = Image
+        fields = '__all__'
+
+
+class CategorieSerializer(ModelSerializer):
+    class Meta:
+        model = Categorie
+        fields = '__all__'
+
+
+class ProduitSerializer(ModelSerializer):
+    class Meta:
+        model = Produit
+        fields = '__all__'
+
+
+class ProduitGetSerializer(ModelSerializer):
+    categorie = CategorieSerializer()
+    images = ImageSerializer(many=True)
+    class Meta:
+        model = Produit
+        fields = '__all__'
+
+
+class VoucherSerializer(ModelSerializer):
+    class Meta:
+        model = Voucher
+        fields = '__all__'
