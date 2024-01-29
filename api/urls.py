@@ -67,5 +67,17 @@ urlpatterns = [
   url(r'^user/(?P<slug>[\w\-]+)/messages/$', views.MessageByUserAPIListView.as_view()),
   url(r'^messages/$', views.MessageAPIListView.as_view()),
   url(r'^messages/(?P<slug>[\w\-]+)/$', views.MessageAPIView.as_view()),
+  
+  url(r'^categories/$', views.CategorieAPIListView.as_view()),
+  url(r'^categories/(?P<slug>[\w\-]+)/$', views.CategorieAPIView.as_view()),
+
+  url(r'^produits/$', views.ProduitAPIListView.as_view()),
+  url(r'^produits/(?P<slug>[\w\-]+)/$', views.ProduitAPIView.as_view()),
+
+  url(r'^images/$', views.ImageAPIListView.as_view()),
+  url(r'^images/(?P<slug>[\w\-]+)/$', views.ImageAPIView.as_view()),
+  
+  url(r'^vouchers/$', views.VoucherAPIListView.as_view()),
+  url(r'^vouchers/(?P<slug>[\w\-]+)/$', views.VoucherAPIView.as_view()),
 
 ]

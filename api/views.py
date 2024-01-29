@@ -2060,3 +2060,203 @@ class NewsletterVisitorAPIListView(LoggingMixin, generics.CreateAPIView):
             notify.send_email(subject, item.email, 'mail_newsletter.html',{'settings': settings})
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class CategorieAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Categorie.objects.all()
+    serializer_class = CategorieSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = Categorie.objects.get(slug=slug)
+            serializer = CategorieSerializer(item)
+            return Response(serializer.data)
+        except Categorie.DoesNotExist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = Categorie.objects.get(slug=slug)
+        except Categorie.DoesNotExist:
+            return Response(status=404)
+        serializer = CategorieSerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = Categorie.objects.get(slug=slug)
+        except Categorie.DoesNotExist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
+
+
+class CategorieAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Categorie.objects.all()
+    serializer_class = CategorieSerializer
+
+    def get(self, request, format=None):
+        items = Categorie.objects.order_by('pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,CategorieSerializer)
+    
+
+    def post(self, request, format=None):
+        serializer = CategorieSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class ImageAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = Image.objects.get(slug=slug)
+            serializer = ImageSerializer(item)
+            return Response(serializer.data)
+        except Image.DoesNotExist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = Image.objects.get(slug=slug)
+        except Image.DoesNotExist:
+            return Response(status=404)
+        serializer = ImageSerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = Image.objects.get(slug=slug)
+        except Image.DoesNotExist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
+
+
+class ImageAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+
+    def get(self, request, format=None):
+        items = Image.objects.order_by('pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,ImageSerializer)
+    
+
+    def post(self, request, format=None):
+        serializer = ImageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class ProduitAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Produit.objects.all()
+    serializer_class = ProduitSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = Produit.objects.get(slug=slug)
+            serializer = ProduitSerializer(item)
+            return Response(serializer.data)
+        except Produit.DoesNotExist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = Produit.objects.get(slug=slug)
+        except Produit.DoesNotExist:
+            return Response(status=404)
+        serializer = ProduitSerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = Produit.objects.get(slug=slug)
+        except Produit.DoesNotExist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
+
+
+class ProduitAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Produit.objects.all()
+    serializer_class = ProduitSerializer
+
+    def get(self, request, format=None):
+        items = Produit.objects.order_by('pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,ProduitGetSerializer)
+    
+
+    def post(self, request, format=None):
+        serializer = ProduitSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class VoucherAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Voucher.objects.all()
+    serializer_class = VoucherSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = Voucher.objects.get(slug=slug)
+            serializer = VoucherSerializer(item)
+            return Response(serializer.data)
+        except Voucher.DoesNotExist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = Voucher.objects.get(slug=slug)
+        except Voucher.DoesNotExist:
+            return Response(status=404)
+        serializer = VoucherSerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = Voucher.objects.get(slug=slug)
+        except Voucher.DoesNotExist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
+
+
+class VoucherAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Voucher.objects.all()
+    serializer_class = VoucherSerializer
+
+    def get(self, request, format=None):
+        items = Voucher.objects.order_by('pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,VoucherSerializer)
+    
+
+    def post(self, request, format=None):
+        serializer = VoucherSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return TranslatedErrorResponse(serializer.errors, status=400)
