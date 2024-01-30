@@ -91,21 +91,9 @@ CONTACT_STATUT = (
     (TRAITED, TRAITED)
 )
 
-ABONNEMENT = 'abonnement'
-RDV = 'rdv'
-CANDIDATURE = 'candidature'
-DOSSIER = 'dossier'
-MESSAGERIE = 'messagerie'
-COMPTE_SECRETAIRE = 'compte_secretaire'
-REABONNEMENT = 'réabonnement'
-
+ACHAT_VOUCHER = 'achat_voucher'
 NOTIF_TYPE = (
-    (ABONNEMENT, ABONNEMENT),
-    (RDV, RDV),
-    (CANDIDATURE, CANDIDATURE),
-    (DOSSIER, DOSSIER),
-    (COMPTE_SECRETAIRE, COMPTE_SECRETAIRE),
-    (REABONNEMENT, REABONNEMENT),
+    (ACHAT_VOUCHER, ACHAT_VOUCHER),
 )
 
 
@@ -122,7 +110,7 @@ PUBLISHED = 'published'
 DRAFTED = 'drafted'
 STATUS_PRODUIT = (
     (DRAFTED, DRAFTED),
-    (DRAFTED, DRAFTED),
+    (PUBLISHED, PUBLISHED),
 )
 
 class MyModelManager(SafeDeleteManager):
@@ -451,8 +439,10 @@ class Produit(models.Model):
     tags = JSONField(default=dict, blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_PRODUIT,
                               default=PUBLISHED)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE,
-                                   blank=True, null=True)
+    vendeur = models.ForeignKey(User, on_delete=models.CASCADE, blank=True,
+                                null=True, related_name="produits")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True,
+                                   null=True, related_name="creator")
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -470,4 +460,18 @@ class Voucher(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'<Categorie: {self.pk},nom: {self.nom}>'
+        return f'<Voucher: {self.pk}, prix: {self.prix}, points: {self.points}>'
+
+
+class AchatVoucher(models.Model):
+    slug = models.SlugField(default=uuid.uuid1, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='achats')
+    voucher = models.ForeignKey(Voucher, on_delete=models.CASCADE,
+                             related_name='achats')
+    paid = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'<Voucher: {self.pk}, prix: {self.prix}, points: {self.points}>'

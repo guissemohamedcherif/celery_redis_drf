@@ -386,3 +386,17 @@ class VoucherSerializer(ModelSerializer):
     class Meta:
         model = Voucher
         fields = '__all__'
+
+
+class AchatVoucherSerializer(ModelSerializer):
+    class Meta:
+        model = AchatVoucher
+        fields = '__all__'
+
+
+class AchatVoucherGetSerializer(ModelSerializer):
+    user = UserSerializer()
+    voucher = VoucherSerializer()
+    class Meta:
+        model = AchatVoucher
+        fields = '__all__'

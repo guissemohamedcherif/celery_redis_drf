@@ -73,11 +73,15 @@ urlpatterns = [
 
   url(r'^produits/$', views.ProduitAPIListView.as_view()),
   url(r'^produits/(?P<slug>[\w\-]+)/$', views.ProduitAPIView.as_view()),
+  url(r'^visiteur/produits/$', views.ProduitVisiteurAPIListView.as_view()),
 
   url(r'^images/$', views.ImageAPIListView.as_view()),
   url(r'^images/(?P<slug>[\w\-]+)/$', views.ImageAPIView.as_view()),
   
   url(r'^vouchers/$', views.VoucherAPIListView.as_view()),
   url(r'^vouchers/(?P<slug>[\w\-]+)/$', views.VoucherAPIView.as_view()),
+  
+  url(r'^achats_vouchers/$', views.AchatVoucherAPIListView.as_view()),
+  url(r'^achats_vouchers/(?P<slug>[\w\-]+)/$', views.AchatVoucherAPIView.as_view()),
 
 ]
