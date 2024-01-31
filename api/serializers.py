@@ -386,3 +386,58 @@ class VoucherSerializer(ModelSerializer):
     class Meta:
         model = Voucher
         fields = '__all__'
+
+
+class AchatVoucherSerializer(ModelSerializer):
+    class Meta:
+        model = AchatVoucher
+        fields = '__all__'
+
+
+class AchatVoucherGetSerializer(ModelSerializer):
+    user = UserSerializer()
+    voucher = VoucherSerializer()
+    class Meta:
+        model = AchatVoucher
+        fields = '__all__'
+
+
+class CartItemSerializer(ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = '__all__'
+
+
+class CartItemGetSerializer(ModelSerializer):
+    produit = ProduitSerializer()
+    class Meta:
+        model = CartItem
+        fields = '__all__'
+
+
+class CartSerializer(ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = '__all__'
+
+
+class CartGetSerializer(ModelSerializer):
+    user = UserSerializer()
+    items = CartItemSerializer(many=True)
+    class Meta:
+        model = Cart
+        fields = '__all__'
+
+
+class OrderSerializer(ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+class OrderGetSerializer(ModelSerializer):
+    cart = CartSerializer()
+    user = UserSerializer()
+    class Meta:
+        model = Order
+        fields = '__all__'

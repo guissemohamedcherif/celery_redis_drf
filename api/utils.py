@@ -142,12 +142,14 @@ class Utils():
         suffix = str(timezone.now().strftime("%Y%m%d"))
         ref = '{}-{}-{}'.format(prefix,code, suffix)
         return ref
+
     def generate_default_filename():
         prefix = 'temp'
         code = Utils.get_code()
         suffix = str(timezone.now().strftime("%Y%m%d"))
         ref = '{}_{}_{}'.format(prefix,code, suffix)
         return ref
+
     def generate_default_transaction_code():
         prefix = 'TRANS'
         code = Utils.get_code()
@@ -177,6 +179,7 @@ class Utils():
         # #self.qrcode.save(filename, filebuffer)
         # self.qrcode.save(filename, filebuffer, False)
         return buffer
+
     def get_matricule(size=6):
         return (''.join(random.SystemRandom().choice(string.digits) for _ in range(size)))
 
@@ -184,7 +187,7 @@ class Utils():
         monday_of_this_week = date - timedelta(days=date.weekday())
         monday_of_next_week = monday_of_this_week + timedelta(days=7)
         return monday_of_this_week, monday_of_next_week
-    
+
     def translate_errors(serializer_errors):
         translated_errors = {}
         for field_name, field_errors in serializer_errors.items():
@@ -203,3 +206,6 @@ class Utils():
             translated_errors[field_name] = translated_field_errors
 
         return translated_errors
+
+    def get_order_code(size=6):
+        return str("#")+ (''.join(random.SystemRandom().choice(string.digits) for _ in range(size)))

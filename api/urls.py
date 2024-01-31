@@ -73,11 +73,31 @@ urlpatterns = [
 
   url(r'^produits/$', views.ProduitAPIListView.as_view()),
   url(r'^produits/(?P<slug>[\w\-]+)/$', views.ProduitAPIView.as_view()),
+  url(r'^visiteur/produits/$', views.ProduitVisiteurAPIListView.as_view()),
 
   url(r'^images/$', views.ImageAPIListView.as_view()),
   url(r'^images/(?P<slug>[\w\-]+)/$', views.ImageAPIView.as_view()),
   
   url(r'^vouchers/$', views.VoucherAPIListView.as_view()),
   url(r'^vouchers/(?P<slug>[\w\-]+)/$', views.VoucherAPIView.as_view()),
+  
+  url(r'^achats_vouchers/$', views.AchatVoucherAPIListView.as_view()),
+  url(r'^achats_vouchers/(?P<slug>[\w\-]+)/$', views.AchatVoucherAPIView.as_view()),
+  
+  url(r'^cart_items/$', views.CartItemAPIListView.as_view()),
+  url(r'^cart_items/(?P<slug>[\w\-]+)/$', views.CartItemAPIView.as_view()),
+
+  url(r'^carts/$', views.CartAPIListView.as_view()),
+  url(r'^carts/(?P<slug>[\w\-]+)/$', views.CartAPIView.as_view()),
+  url(r'^cart/add/$', views.CartAddAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/cart/$', views.CartByUserAPIView.as_view()),
+  url(r'^cart/(?P<slug>[\w\-]+)/clear/$', views.CartClearAPIView.as_view()),
+
+  url(r'^orders/$', views.OrderAPIListView.as_view()),
+  url(r'^orders/(?P<slug>[\w\-]+)/$', views.OrderAPIView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/canceled_orders/$', views.CanceledOrderByUserAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/orders/$', views.OrderByUserAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/canceled_orders_mobile/$', views.CanceledOrderByUserMobileAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/orders_mobile/$', views.OrderByUserMobileAPIListView.as_view()),
 
 ]
