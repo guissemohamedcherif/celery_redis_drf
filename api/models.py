@@ -18,6 +18,16 @@ from django.contrib.auth import get_user_model
 import os
 from api.validators import *
 
+EN_COURS = 'en_cours'
+CONFIRMEE = 'confirmee'
+LIVREE = 'livree'
+ANNULEE = 'annulee'
+ORDER_STATUS = (
+    (EN_COURS, EN_COURS),
+    (CONFIRMEE, CONFIRMEE),
+    (LIVREE, LIVREE),
+    (ANNULEE,ANNULEE),
+)
 
 ADMIN = 'admin'
 SUPERADMIN = 'superadmin'
@@ -92,8 +102,10 @@ CONTACT_STATUT = (
 )
 
 ACHAT_VOUCHER = 'achat_voucher'
+COMMANDE = 'commande'
 NOTIF_TYPE = (
     (ACHAT_VOUCHER, ACHAT_VOUCHER),
+    (COMMANDE, COMMANDE)
 )
 
 
@@ -475,3 +487,45 @@ class AchatVoucher(models.Model):
 
     def __str__(self):
         return f'<Voucher: {self.pk}, prix: {self.prix}, points: {self.points}>'
+
+
+class CartItem(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    quantite = models.PositiveIntegerField(default=0)
+    prix = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    produit = models.ForeignKey(Produit, on_delete=models.CASCADE)
+    cart = models.ForeignKey('Cart', on_delete=models.CASCADE)  # Assuming you have a User model for authentication
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Cartitem {self.id} - Produit {self.produit.nom} - Quantite: {self.quantite}"
+
+
+class Cart(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE,related_name="carts")  # Assuming you have a User model for authentication
+    items = models.ManyToManyField(CartItem, blank=True, default=[],
+                                   related_name='carts')
+    total = models.DecimalField(max_digits=50,decimal_places=2,default=0)
+    created_at = models.DateTimeField(auto_now_add=True)  
+
+    def __str__(self):
+        return f"Cart {self.pk} for {self.user.nom} {self.user.prenom}"
+    
+    def clear_cart(self):
+        self.items.set([])
+        self.total=0
+        self.save()
+
+
+class Order(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='orders')
+    statut = models.CharField(max_length=120,choices=ORDER_STATUS,default=EN_COURS)    
+    user = models.ForeignKey(User,on_delete=models.CASCADE, related_name='orders')
+    total = models.DecimalField(max_digits=50,decimal_places=2)
+    code_commande = models.CharField(max_length=100,default=Utils.get_order_code)
+    moyen_paiement = models.CharField(max_length=50, choices=MOYEN_PAIEMENT)
+    paid = models.BooleanField(default=False)
+    transaction_intech_code = models.CharField(max_length=200,blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True) 
