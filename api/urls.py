@@ -97,5 +97,7 @@ urlpatterns = [
   url(r'^orders/(?P<slug>[\w\-]+)/$', views.OrderAPIView.as_view()),
   url(r'^user/(?P<slug>[\w\-]+)/canceled_orders/$', views.CanceledOrderByUserAPIListView.as_view()),
   url(r'^user/(?P<slug>[\w\-]+)/orders/$', views.OrderByUserAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/canceled_orders_mobile/$', views.CanceledOrderByUserMobileAPIListView.as_view()),
+  url(r'^user/(?P<slug>[\w\-]+)/orders_mobile/$', views.OrderByUserMobileAPIListView.as_view()),
 
 ]
