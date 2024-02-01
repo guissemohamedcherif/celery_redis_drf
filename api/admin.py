@@ -46,3 +46,5 @@ admin.site.register(ResponseContact)
 admin.site.register(CartItem)
 admin.site.register(Cart)
 admin.site.register(Order)
+admin.site.register(Saving)
+
