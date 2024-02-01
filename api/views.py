@@ -2529,7 +2529,6 @@ class OrderAPIView(LoggingMixin, generics.RetrieveAPIView):
             if order.statut == CONFIRMEE and order.statut != statut:
                 sujet = "Confirmation de commande"
                 self.notify_user_commande(sujet, order)
-                return response
                 response._resource_closers.append(self.notify_user_commande(sujet, order))
             if order.statut == LIVREE and order.statut != statut:
                 sujet = "Livraison de commande"
@@ -2611,3 +2610,52 @@ class CanceledOrderByUserMobileAPIListView(LoggingMixin, generics.RetrieveAPIVie
         if statut:
             items = items.filter(statut=statut)
         return Response(OrderGetSerializer(items, many=True).data)
+
+
+class OrderPaymentAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    
+    def notify_user_commande(self, sujet, contenu, order):
+        contenu = contenu
+        subject = sujet
+        to = order.user.email
+        template_src = 'mail_notification.html'
+        name = f"{order.user.prenom} {order.user.nom}"
+        context = {
+            'email': to,
+            "name": name,
+            'settings': settings,
+            "id":"false",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to, template_src, context)
+        Notification.objects.create(receiver=order.user, data=OrderSerializer(order).data, 
+                                    content=contenu, notif_type=COMMANDE)
+
+    def get(self, request, slug, format=None):
+        try:
+            order = Order.objects.get(slug=slug)
+            saving = 0
+            if order.mode_paiement == 'mixte':
+                if order.cart.total_points > order.user.points:
+                    return Response({"message": "Cet utilisateur n'a pas assez de point pour finaliser cette commande"})
+                else:
+                    order.user.points = order.user.points - order.cart.total_points
+                    order.user.save()
+                    cart_items_ids = order.cart.items.all().values_list('id', flat=True)
+                    cart_items = CartItem.objects.filter(pk__in=cart_items_ids)
+                    for cart in cart_items:
+                        saving += cart.produit.discount
+            order.paid = True
+            order.save()
+            Saving.objects.create(order=order, total=saving)
+            sujet = "Paiement Commande"
+            contenu = f"La paiement de votre commande {order.code_commande} vient d'être effectué avec succes."
+            serializer = OrderGetSerializer(order)
+            response = Response(serializer.data)
+            response._resource_closers.append(self.notify_user_commande(sujet, contenu, order))
+            return response
+        except Order.DoesNotExist:
+            return Response(status=404)

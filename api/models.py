@@ -118,6 +118,11 @@ MOYEN_PAIEMENT = (
     ('BANK_CARD_API_CASH_OUT', 'CARTE_BANCAIRE'),
 )
 
+MODE_PAIEMENT = (
+    ('argent', 'argent'),
+    ('mixte', 'mixte'),
+)
+
 PUBLISHED = 'published'
 DRAFTED = 'drafted'
 STATUS_PRODUIT = (
@@ -173,7 +178,7 @@ class User(AbstractBaseUser, PermissionsMixin, SafeDeleteModel):
     cni = models.CharField(max_length=500, blank=True, null=True)
     ninea = models.CharField(max_length=500, blank=True, null=True)
     user_type = models.CharField(max_length=50, choices=USER_TYPES,default=USER)
-    points = models.IntegerField(default=0)
+    points = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(('active'), default=True)
     condition = models.BooleanField(default=False)
     bloquer = models.BooleanField(default=False)
@@ -507,6 +512,7 @@ class Cart(models.Model):
     items = models.ManyToManyField(CartItem, blank=True, default=[],
                                    related_name='carts')
     total = models.DecimalField(max_digits=50,decimal_places=2,default=0)
+    total_points = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)  
 
     def __str__(self):
@@ -526,6 +532,14 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=50,decimal_places=2)
     code_commande = models.CharField(max_length=100,default=Utils.get_order_code)
     moyen_paiement = models.CharField(max_length=50, choices=MOYEN_PAIEMENT)
+    mode_paiement = models.CharField(max_length=50, choices=MODE_PAIEMENT, default='mixte')
     paid = models.BooleanField(default=False)
     transaction_intech_code = models.CharField(max_length=200,blank=True,null=True)
-    created_at = models.DateTimeField(auto_now_add=True) 
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Saving(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='savings')
+    total = models.DecimalField(max_digits=50,decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
