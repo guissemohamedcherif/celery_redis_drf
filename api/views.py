@@ -33,6 +33,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from backend.settings import APP_NAME
 from api.order import add_to_cart
+from api.images import get_images
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -2177,15 +2178,24 @@ class ProduitAPIView(LoggingMixin, generics.RetrieveAPIView):
             return Response(status=404)
 
     def put(self, request, slug, format=None):
+        images = []
+        if 'images' in request.data and request.data['images']:
+            images = get_images(request.FILES.getlist('images',[]))
         try:
             item = Produit.objects.get(slug=slug)
+            self.data = request.data.copy()
+            if "images" in self.data and self.data['images']:
+                del self.data['images']
+            serializer = ProduitSerializer(item, data=self.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                for i in images:
+                    item.images.add(i)
+                item.save()
+                return Response(serializer.data)
+            return TranslatedErrorResponse(serializer.errors, status=400)
         except Produit.DoesNotExist:
             return Response(status=404)
-        serializer = ProduitSerializer(item, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:
@@ -2224,9 +2234,18 @@ class ProduitAPIListView(LoggingMixin, generics.CreateAPIView):
     
 
     def post(self, request, format=None):
-        serializer = ProduitSerializer(data=request.data)
+        images = []
+        if 'images' in request.data and request.data['images']:
+            images = get_images(request.FILES.getlist('images',[]))
+        self.data = request.data.copy()
+        if "images" in self.data and self.data['images']:
+            del self.data['images']
+        serializer = ProduitSerializer(data=self.data)
         if serializer.is_valid():
-            serializer.save()
+            item = serializer.save()
+            for i in images:
+                item.images.add(i)
+            item.save()
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
 

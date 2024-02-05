@@ -1,16 +1,18 @@
-from api.models import Medicament
-from icecream import ic
+from api.models import Image
+from api.serializers import ImageSerializer
+# from icecream import ic
+from ast import literal_eval
 
 
-# def get_images(array_images):
-#     return map(lambda x: serializerImage(x), array_images)
+def get_images(array_images):
+    return map(lambda x: serializerImage(x), array_images)
 
 
-# def serializerImage(image):
-#     imageSerializer = ImageSerializer(data={"picture": image})
-#     if imageSerializer.is_valid():
-#         imageSerializer.save()
-#         return imageSerializer.data["id"]
+def serializerImage(image):
+    imageSerializer = ImageSerializer(data={"picture": image})
+    if imageSerializer.is_valid():
+        imageSerializer.save()
+        return imageSerializer.data["id"]
 
 # def get_tarifs(array_items):
 #     tarifs = []
