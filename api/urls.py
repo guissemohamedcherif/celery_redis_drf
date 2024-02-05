@@ -73,6 +73,9 @@ urlpatterns = [
 
   url(r'^produits/$', views.ProduitAPIListView.as_view()),
   url(r'^vendeur/(?P<slug>[\w\-]+)/produits/$', views.ProduitByVendeurAPIListView.as_view()),
+  url(r'^mobile/vendeur/(?P<slug>[\w\-]+)/produits/$', views.ProduitByVendeurByMobileAPIListView.as_view()),
+  url(r'^mobile/categories/$', views.CategorieByMobileAPIListView.as_view()),
+
 
   url(r'^produits/(?P<slug>[\w\-]+)/$', views.ProduitAPIView.as_view()),
   url(r'^visiteur/produits/$', views.ProduitVisiteurAPIListView.as_view()),
