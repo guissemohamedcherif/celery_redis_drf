@@ -2255,7 +2255,7 @@ class CategorieByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Categorie.objects.all()
     serializer_class = CategorieSerializer
 
-    def get(self, request,slug, format=None):
+    def get(self, request, format=None):
         items = Categorie.objects.order_by('-pk')
         serializer = CategorieSerializer(items,many=True)
         return Response(serializer.data)
