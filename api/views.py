@@ -2178,15 +2178,24 @@ class ProduitAPIView(LoggingMixin, generics.RetrieveAPIView):
             return Response(status=404)
 
     def put(self, request, slug, format=None):
+        images = []
+        if 'images' in request.data and request.data['images']:
+            images = get_images(request.FILES.getlist('images',[]))
         try:
             item = Produit.objects.get(slug=slug)
+            self.data = request.data.copy()
+            if "images" in self.data and self.data['images']:
+                del self.data['images']
+            serializer = ProduitSerializer(item, data=self.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                for i in images:
+                    item.images.add(i)
+                item.save()
+                return Response(serializer.data)
+            return TranslatedErrorResponse(serializer.errors, status=400)
         except Produit.DoesNotExist:
             return Response(status=404)
-        serializer = ProduitSerializer(item, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return TranslatedErrorResponse(serializer.errors, status=400)
 
     def delete(self, request, slug, format=None):
         try:

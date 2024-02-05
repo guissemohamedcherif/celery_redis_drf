@@ -168,7 +168,7 @@ class User(AbstractBaseUser, PermissionsMixin, SafeDeleteModel):
     prenom = models.CharField(max_length=500, blank=True, null=True)
     nom = models.CharField(max_length=500, blank=True, null=True)
     email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20,validators=[isnumbervalidator],unique=True)
+    phone = models.CharField(max_length=20,validators=[isnumbervalidator],null=True,blank=True)
     civilite = models.CharField(max_length=50, choices=USER_SEXE,default=HOMME)
     adress = models.TextField(null=True,blank=True)
     date_de_naissance = models.DateField(null=True)
