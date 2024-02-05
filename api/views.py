@@ -61,7 +61,8 @@ class UserRegisterAPIView(LoggingMixin, generics.CreateAPIView):
         context = {
             'user_type': item.user_type.upper(),
             'email': item.email,
-            "name":item.name,
+            "nom":item.nom,
+            "prenom":item.prenom,
             'settings': settings,
             "id":"false",
             "contenu":contenu,
@@ -2170,7 +2171,7 @@ class ProduitAPIView(LoggingMixin, generics.RetrieveAPIView):
     def get(self, request, slug, format=None):
         try:
             item = Produit.objects.get(slug=slug)
-            serializer = ProduitSerializer(item)
+            serializer = ProduitGetSerializer(item)
             return Response(serializer.data)
         except Produit.DoesNotExist:
             return Response(status=404)
@@ -2228,6 +2229,37 @@ class ProduitAPIListView(LoggingMixin, generics.CreateAPIView):
             serializer.save()
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class ProduitByVendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Produit.objects.all()
+    serializer_class = ProduitSerializer
+
+    def get(self, request,slug, format=None):
+        items = Produit.objects.filter(vendeur__slug=slug).order_by('-pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,ProduitGetSerializer)
+
+
+class ProduitByVendeurByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Produit.objects.all()
+    serializer_class = ProduitSerializer
+
+    def get(self, request,slug, format=None):
+        items = Produit.objects.filter(vendeur__slug=slug).order_by('-pk')
+        serializer = ProduitGetSerializer(items,many=True)
+        return Response(serializer.data)
+    
+
+class CategorieByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Categorie.objects.all()
+    serializer_class = CategorieSerializer
+
+    def get(self, request,slug, format=None):
+        items = Categorie.objects.order_by('-pk')
+        serializer = CategorieSerializer(items,many=True)
+        return Response(serializer.data)
+    
 
 
 class VoucherAPIView(LoggingMixin, generics.RetrieveAPIView):
