@@ -63,15 +63,19 @@ urlpatterns = [
   url(r'^conversations/(?P<slug>[\w\-]+)/$', views.ConversationAPIView.as_view()),
   url(r'^mobile/user/(?P<slug>[\w\-]+)/conversations/$', views.ConversationByUserByMobileAPIListView.as_view()),
   url(r'^user/(?P<slug>[\w\-]+)/conversations/$', views.ConversationByUserAPIListView.as_view()),
+
   url(r'^conversation/(?P<slug>[\w\-]+)/messages/$', views.MessagesByConversationAPIListView.as_view()),
   url(r'^user/(?P<slug>[\w\-]+)/messages/$', views.MessageByUserAPIListView.as_view()),
   url(r'^messages/$', views.MessageAPIListView.as_view()),
   url(r'^messages/(?P<slug>[\w\-]+)/$', views.MessageAPIView.as_view()),
+  url(r'^mobile/messages/$', views.MessageMobileAPIListView.as_view()),
+  
   
   url(r'^categories/$', views.CategorieAPIListView.as_view()),
   url(r'^categories/(?P<slug>[\w\-]+)/$', views.CategorieAPIView.as_view()),
 
   url(r'^produits/$', views.ProduitAPIListView.as_view()),
+  url(r'^mobile/produits/$', views.ProduitMobileAPIListView.as_view()),
   url(r'^vendeur/(?P<slug>[\w\-]+)/produits/$', views.ProduitByVendeurAPIListView.as_view()),
   url(r'^mobile/vendeur/(?P<slug>[\w\-]+)/produits/$', views.ProduitByVendeurByMobileAPIListView.as_view()),
   url(r'^mobile/categories/$', views.CategorieByMobileAPIListView.as_view()),
@@ -89,6 +93,7 @@ urlpatterns = [
   
   url(r'^achats_vouchers/$', views.AchatVoucherAPIListView.as_view()),
   url(r'^achats_vouchers/(?P<slug>[\w\-]+)/$', views.AchatVoucherAPIView.as_view()),
+  url(r'^mobile/achats_vouchers/$', views.AchatVoucherMobileAPIListView.as_view()),
   
   url(r'^cart_items/$', views.CartItemAPIListView.as_view()),
   url(r'^cart_items/(?P<slug>[\w\-]+)/$', views.CartItemAPIView.as_view()),
