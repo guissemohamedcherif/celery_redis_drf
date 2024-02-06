@@ -2716,16 +2716,15 @@ class OrderPaymentAPIView(LoggingMixin, generics.RetrieveAPIView):
         try:
             order = Order.objects.get(slug=slug)
             saving = 0
-            if order.mode_paiement == 'mixte':
-                if order.cart.total_points > order.user.points:
-                    return Response({"message": "Cet utilisateur n'a pas assez de point pour finaliser cette commande"})
-                else:
-                    order.user.points = order.user.points - order.cart.total_points
-                    order.user.save()
-                    cart_items_ids = order.cart.items.all().values_list('id', flat=True)
-                    cart_items = CartItem.objects.filter(pk__in=cart_items_ids)
-                    for cart in cart_items:
-                        saving += cart.produit.discount
+            if order.cart.total_points > order.user.points:
+                return Response({"message": "Cet utilisateur n'a pas assez de point pour finaliser cette commande"})
+            else:
+                order.user.points = order.user.points - order.cart.total_points
+                order.user.save()
+                cart_items_ids = order.cart.items.all().values_list('id', flat=True)
+                cart_items = CartItem.objects.filter(pk__in=cart_items_ids)
+                for cart in cart_items:
+                    saving += cart.produit.discount
             order.paid = True
             order.save()
             Saving.objects.create(order=order, total=saving)
@@ -2737,3 +2736,29 @@ class OrderPaymentAPIView(LoggingMixin, generics.RetrieveAPIView):
             return response
         except Order.DoesNotExist:
             return Response(status=404)
+
+
+class OrderByVendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def get(self, request, slug, format=None):
+        items = Order.objects.filter(user__slug=slug, paid=True).order_by('-pk')
+        limit = self.request.query_params.get('limit')
+        statut = self.request.query_params.get('statut')
+        if statut:
+            items = items.filter(statut=statut)
+        return KgPagination.get_response(limit,items,request,OrderDetailSerializer(context={"vendeur":slug}))
+        # return Response(OrderDetailSerializer(items, many=True, context={"vendeur":slug}).data)
+
+
+class OrderByVendeurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def get(self, request, slug, format=None):
+        items = Order.objects.filter(user__slug=slug, paid=True).order_by('-pk')
+        statut = self.request.query_params.get('statut')
+        if statut:
+            items = items.filter(statut=statut)
+        return Response(OrderDetailSerializer(items, many=True, context={"vendeur":slug}).data)
