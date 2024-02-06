@@ -85,6 +85,7 @@ urlpatterns = [
   
   url(r'^vouchers/$', views.VoucherAPIListView.as_view()),
   url(r'^vouchers/(?P<slug>[\w\-]+)/$', views.VoucherAPIView.as_view()),
+  url(r'^mobile/vouchers/$', views.VoucherMobileAPIListView.as_view()),
   
   url(r'^achats_vouchers/$', views.AchatVoucherAPIListView.as_view()),
   url(r'^achats_vouchers/(?P<slug>[\w\-]+)/$', views.AchatVoucherAPIView.as_view()),
@@ -108,4 +109,6 @@ urlpatterns = [
   url(r'^vendeur/(?P<slug>[\w\-]+)/orders/$', views.OrderByVendeurAPIListView.as_view()),
   url(r'^vendeur/(?P<slug>[\w\-]+)/orders_mobile/$', views.OrderByVendeurMobileAPIListView.as_view()),
 
+  url(r'^config_points/$', views.ConfigPointAPIListView.as_view()),
+  url(r'^config_points/(?P<slug>[\w\-]+)/$', views.ConfigPointAPIView.as_view()),
 ]

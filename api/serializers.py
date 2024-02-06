@@ -456,3 +456,9 @@ class OrderDetailSerializer(ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+
+
+class ConfigPointSerializer(ModelSerializer):
+    class Meta:
+        model = ConfigPoint
+        fields = '__all__'
