@@ -2340,6 +2340,15 @@ class VoucherAPIView(LoggingMixin, generics.RetrieveAPIView):
         return Response(status=204)
 
 
+class VoucherMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Voucher.objects.all()
+    serializer_class = VoucherSerializer
+
+    def get(self, request, format=None):
+        items = Voucher.objects.order_by('-pk')
+        return Response(VoucherSerializer(items, many=True).data)
+
+
 class VoucherAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Voucher.objects.all()
     serializer_class = VoucherSerializer
@@ -2762,3 +2771,51 @@ class OrderByVendeurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
         if statut:
             items = items.filter(statut=statut)
         return Response(OrderDetailSerializer(items, many=True, context={"vendeur":slug}).data)
+
+
+class ConfigPointAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = ConfigPoint.objects.all()
+    serializer_class = ConfigPointSerializer
+
+    def get(self, request, format=None):
+        items = ConfigPoint.objects.order_by('-pk')
+        return Response(ConfigPointSerializer(items, many=True).data)
+
+    def post(self, request, format=None):
+        serializer = ConfigPointSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class ConfigPointAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = ConfigPoint.objects.all()
+    serializer_class = ConfigPointSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = ConfigPoint.objects.get(slug=slug)
+            serializer = ConfigPointSerializer(item)
+            return Response(serializer.data)
+        except ConfigPoint.DoesNotExist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = ConfigPoint.objects.get(slug=slug)
+        except ConfigPoint.DoesNotExist:
+            return Response(status=404)
+        serializer = ConfigPointerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = ConfigPoint.objects.get(slug=slug)
+        except ConfigPoint.DoesNotExist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
