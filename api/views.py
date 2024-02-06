@@ -34,6 +34,8 @@ from django.core.exceptions import ValidationError
 from backend.settings import APP_NAME
 from api.order import add_to_cart
 from api.images import get_images
+from functools import reduce
+from operator import or_,and_
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -541,8 +543,22 @@ class VendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VENDEUR, bloquer=False)
+        items = User.objects.filter(user_type=VENDEUR)
         limit = self.request.query_params.get('limit')
+        search = self.request.query_params.get('q')
+        if search:
+            search_terms = search.split()
+            nom_conditions = [Q(Q(nom__icontains=term)|Q(prenom__icontains=term)) for term in search_terms]
+            phone_conditions = [Q(phone__icontains=term) for term in search_terms]
+            email_conditions = [Q(email__icontains=term) for term in search_terms]
+            nom_filter = reduce(and_, nom_conditions)
+            phone_filter = reduce(and_, phone_conditions)
+            email_filter = reduce(and_, email_conditions)
+            items = items.filter(
+                nom_filter |
+                phone_filter |
+                email_filter 
+            )
         return KgPagination.get_response(limit,items,request,UserGetSerializer)
 
 
