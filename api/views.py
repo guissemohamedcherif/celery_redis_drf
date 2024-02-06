@@ -1824,6 +1824,15 @@ class MessageAPIView(LoggingMixin, generics.CreateAPIView):
         return Response(status=204)
 
 
+class MessageMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+    def get(self, request, format=None):
+        items = Message.objects.order_by('-pk')
+        return Response(MessageGetSerializer(items, many=True).data)
+
+
 class MessageAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
@@ -1961,6 +1970,7 @@ class ConversationByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
             items = items.filter(Q(participants__nom__icontains=search)|
                                  Q(participants__prenom__icontains=search) )
         return KgPagination.get_response(limit,items,request,ConversationGetWebSerializer)
+
     
 
 class MessagesByConversationAPIListView(LoggingMixin, generics.RetrieveAPIView):
@@ -2277,6 +2287,28 @@ class ProduitAPIListView(LoggingMixin, generics.CreateAPIView):
         return TranslatedErrorResponse(serializer.errors, status=400)
 
 
+class ProduitMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    permission_classes = ()
+    queryset = Produit.objects.all()
+    serializer_class = ProduitSerializer
+
+    def get(self, request, format=None):
+        items = Produit.objects.order_by('-pk')
+        limit = self.request.query_params.get('limit')
+        search = self.request.query_params.get('q')
+        if search:
+            search_terms = search.split()
+            nom_conditions = [Q(nom__icontains=term) for term in search_terms]
+            categorie_conditions = [Q(categorie__nom__icontains=term) for term in search_terms]
+            nom_filter = reduce(and_, nom_conditions)
+            categorie_filter = reduce(and_, categorie_conditions)
+            items = items.filter(
+                nom_filter |
+                categorie_filter 
+            )
+        return Response(ProduitGetSerializer(items, many=True).data)
+
+
 class ProduitByVendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Produit.objects.all()
     serializer_class = ProduitSerializer
@@ -2298,6 +2330,7 @@ class ProduitByVendeurByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView
     
 
 class CategorieByMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    permission_classes = ()
     queryset = Categorie.objects.all()
     serializer_class = CategorieSerializer
 
@@ -2341,6 +2374,7 @@ class VoucherAPIView(LoggingMixin, generics.RetrieveAPIView):
 
 
 class VoucherMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+    permission_classes = ()
     queryset = Voucher.objects.all()
     serializer_class = VoucherSerializer
 
@@ -2421,6 +2455,15 @@ class AchatVoucherAPIListView(LoggingMixin, generics.CreateAPIView):
             Notification.objects.create(receiver=achat.user, content=content, notif_type=ACHAT_VOUCHER, data=serializer.data)
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
+
+
+class AchatVoucherMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = AchatVoucher.objects.all()
+    serializer_class = AchatVoucherSerializer
+
+    def get(self, request, format=None):
+        items = AchatVoucher.objects.order_by('-pk')
+        return Response(AchatVoucherGetSerializer(items, many=True).data)
 
 
 class CartItemAPIView(LoggingMixin, generics.RetrieveAPIView):
