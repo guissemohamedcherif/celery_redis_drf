@@ -377,6 +377,7 @@ class ProduitSerializer(ModelSerializer):
 class ProduitGetSerializer(ModelSerializer):
     categorie = CategorieSerializer()
     images = ImageSerializer(many=True)
+    vendeur = UserGetSerializer()
     class Meta:
         model = Produit
         fields = '__all__'
