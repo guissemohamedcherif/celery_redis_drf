@@ -47,4 +47,5 @@ admin.site.register(CartItem)
 admin.site.register(Cart)
 admin.site.register(Order)
 admin.site.register(Saving)
+admin.site.register(ConfigPoint)
 

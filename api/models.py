@@ -118,11 +118,6 @@ MOYEN_PAIEMENT = (
     ('BANK_CARD_API_CASH_OUT', 'CARTE_BANCAIRE'),
 )
 
-MODE_PAIEMENT = (
-    ('argent', 'argent'),
-    ('mixte', 'mixte'),
-)
-
 PUBLISHED = 'published'
 DRAFTED = 'drafted'
 STATUS_PRODUIT = (
@@ -450,6 +445,7 @@ class Produit(models.Model):
     quantite = models.IntegerField(default=0)
     points = models.IntegerField(default=0)
     discount = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
+    prix_afficher = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
     categorie = models.ForeignKey(Categorie,on_delete=models.CASCADE)
     couverture = models.ImageField(null=True,blank=True)
     images = models.ManyToManyField(Image,blank=True,default=[])
@@ -462,6 +458,13 @@ class Produit(models.Model):
                                    null=True, related_name="creator")
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        cfg = ConfigPoint.objects.filter(is_active=True).last()
+        if cfg and self.points and self.prix:
+            self.prix_afficher = (self.points * cfg.prix) / cfg.points
+            self.discount = self.prix - self.prix_afficher
+        super(Produit, self).save(*args, **kwargs)
     
     def __str__(self):
         return f'<Produit: {self.pk},nom: {self.nom}>'
@@ -532,7 +535,6 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=50,decimal_places=2)
     code_commande = models.CharField(max_length=100,default=Utils.get_order_code)
     moyen_paiement = models.CharField(max_length=50, choices=MOYEN_PAIEMENT)
-    mode_paiement = models.CharField(max_length=50, choices=MODE_PAIEMENT, default='mixte')
     paid = models.BooleanField(default=False)
     transaction_intech_code = models.CharField(max_length=200,blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -542,4 +544,12 @@ class Saving(models.Model):
     slug = models.SlugField(default=uuid.uuid1,editable=False)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='savings')
     total = models.DecimalField(max_digits=50,decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ConfigPoint(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    points = models.PositiveIntegerField(default=0)
+    prix = models.DecimalField(max_digits=50,decimal_places=2,default=0)
+    is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

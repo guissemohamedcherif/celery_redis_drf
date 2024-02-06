@@ -442,3 +442,17 @@ class OrderGetSerializer(ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+
+
+class OrderDetailSerializer(ModelSerializer):
+    cart = CartSerializer()
+    user = UserSerializer()
+    produits = serializers.SerializerMethodField("get_produits")
+    def get_produits(self, obj):
+        vendeur_slug = self.context.get("vendeur")
+        cartitems_ids = CartItem.objects.filter(cart__id=obj.cart.id).values_list("produit", flat=True)
+        produits = Produit.objects.filter(pk__in=cartitems_ids, vendeur__slug=vendeur_slug)
+        return ProduitSerializer(produits, many=True).data
+    class Meta:
+        model = Order
+        fields = '__all__'
