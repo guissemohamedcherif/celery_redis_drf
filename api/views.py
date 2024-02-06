@@ -2246,6 +2246,17 @@ class ProduitAPIListView(LoggingMixin, generics.CreateAPIView):
     def get(self, request, format=None):
         items = Produit.objects.order_by('-pk')
         limit = self.request.query_params.get('limit')
+        search = self.request.query_params.get('q')
+        if search:
+            search_terms = search.split()
+            nom_conditions = [Q(nom__icontains=term) for term in search_terms]
+            categorie_conditions = [Q(categorie__nom__icontains=term) for term in search_terms]
+            nom_filter = reduce(and_, nom_conditions)
+            categorie_filter = reduce(and_, categorie_conditions)
+            items = items.filter(
+                nom_filter |
+                categorie_filter 
+            )
         return KgPagination.get_response(limit,items,request,ProduitGetSerializer)
     
 
