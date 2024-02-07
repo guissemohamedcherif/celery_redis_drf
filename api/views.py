@@ -2293,7 +2293,7 @@ class ProduitMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = ProduitSerializer
 
     def get(self, request, format=None):
-        items = Produit.objects.order_by('-pk')
+        items = Produit.objects.filter(status=PUBLISHED).order_by('-pk')
         limit = self.request.query_params.get('limit')
         search = self.request.query_params.get('q')
         if search:
@@ -2456,7 +2456,17 @@ class AchatVoucherAPIListView(LoggingMixin, generics.CreateAPIView):
             return Response(serializer.data, status=201)
         return TranslatedErrorResponse(serializer.errors, status=400)
 
+class AchatVoucherByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = AchatVoucher.objects.all()
+    serializer_class = AchatVoucherSerializer
 
+    def get(self, request,slug, format=None):
+        items = AchatVoucher.objects.filter(user__slug=slug).order_by('-pk')
+        return Response(AchatVoucherGetSerializer(items, many=True).data)
+    
+
+ 
+        
 class AchatVoucherMobileAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = AchatVoucher.objects.all()
     serializer_class = AchatVoucherSerializer
@@ -2464,6 +2474,8 @@ class AchatVoucherMobileAPIListView(LoggingMixin, generics.CreateAPIView):
     def get(self, request, format=None):
         items = AchatVoucher.objects.order_by('-pk')
         return Response(AchatVoucherGetSerializer(items, many=True).data)
+
+
 
 
 class CartItemAPIView(LoggingMixin, generics.RetrieveAPIView):
