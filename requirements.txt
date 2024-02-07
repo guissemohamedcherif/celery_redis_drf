@@ -5,7 +5,7 @@ beautifulsoup4==4.10.0
 cairocffi==1.1.0      
 CairoSVG==2.7.0      
 certifi==2022.12.7    
-cffi==1.14.3
+cffi
 chardet==3.0.4        
 Click==7.0
 colorama==0.4.4       
@@ -47,7 +47,7 @@ num2words==0.5.10
 odfpy==1.4.1
 openpyxl==3.0.5
 pilkit==2.0
-Pillow==9.3.0
+Pillow
 pip-tools==4.4.0
 pycparser==2.20
 Pygments==2.10.0
