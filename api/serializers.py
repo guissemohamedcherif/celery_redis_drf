@@ -462,3 +462,19 @@ class ConfigPointSerializer(ModelSerializer):
     class Meta:
         model = ConfigPoint
         fields = '__all__'
+
+
+class FavoriSerializer(ModelSerializer):
+
+    class Meta:
+        model = Favori
+        fields = '__all__'
+
+class FavoriGetSerializer(ModelSerializer):
+
+    user = UserGetSerializer()
+    produit = ProduitGetSerializer()
+
+    class Meta:
+        model = Favori
+        fields = '__all__'

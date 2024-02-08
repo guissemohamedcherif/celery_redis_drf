@@ -551,3 +551,15 @@ class ConfigPoint(models.Model):
     prix = models.DecimalField(max_digits=50,decimal_places=2,default=0)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Favori(models.Model):
+    slug = models.SlugField(default=uuid.uuid1)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    produit = models.ForeignKey(Produit,on_delete=models.CASCADE)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('user', 'produit')
+    def __str__(self):
+        return f'<Favori: {self.pk},user: {self.user}, produit: {self.produit}>'
