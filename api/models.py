@@ -32,13 +32,11 @@ ORDER_STATUS = (
 ADMIN = 'admin'
 SUPERADMIN = 'superadmin'
 USER = 'user'
-VISITEUR = 'visiteur'
 VENDEUR = 'vendeur'
 DELETED = 'deleted'
 
 USER_TYPES = (
     (USER, USER),
-    (VISITEUR, VISITEUR),
     (VENDEUR, VENDEUR),
     (ADMIN, ADMIN),
     (SUPERADMIN, SUPERADMIN),

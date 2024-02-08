@@ -543,7 +543,7 @@ class VendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VENDEUR)
+        items = User.objects.filter(user_type=VENDEUR).order_by('-pk')
         limit = self.request.query_params.get('limit')
         search = self.request.query_params.get('q')
         if search:
@@ -595,7 +595,7 @@ class VisiteurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=False)
+        items = User.objects.filter(user_type=USER, bloquer=False)
         return Response(UserGetSerializer(items, many=True).data)
 
 
@@ -604,8 +604,22 @@ class VisiteurAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=False)
+        items = User.objects.filter(user_type=USER).order_by('-pk')  
         limit = self.request.query_params.get('limit')
+        search = self.request.query_params.get('q')
+        if search:
+            search_terms = search.split()
+            nom_conditions = [Q(Q(nom__icontains=term)|Q(prenom__icontains=term)) for term in search_terms]
+            phone_conditions = [Q(phone__icontains=term) for term in search_terms]
+            email_conditions = [Q(email__icontains=term) for term in search_terms]
+            nom_filter = reduce(and_, nom_conditions)
+            phone_filter = reduce(and_, phone_conditions)
+            email_filter = reduce(and_, email_conditions)
+            items = items.filter(
+                nom_filter |
+                phone_filter |
+                email_filter 
+            )
         return KgPagination.get_response(limit,items,request,UserGetSerializer)
 
 
@@ -614,7 +628,7 @@ class VisiteurBlockedAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=True)
+        items = User.objects.filter(user_type=USER, bloquer=True)
         limit = self.request.query_params.get('limit')
         return KgPagination.get_response(limit,items,request,UserGetSerializer)
 
@@ -624,7 +638,7 @@ class VisiteurBlockedMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=True)
+        items = User.objects.filter(user_type=USER, bloquer=True)
         return Response(UserGetSerializer(items, many=True).data)
 
 
@@ -2861,7 +2875,7 @@ class ConfigPointAPIView(LoggingMixin, generics.RetrieveAPIView):
             item = ConfigPoint.objects.get(slug=slug)
         except ConfigPoint.DoesNotExist:
             return Response(status=404)
-        serializer = ConfigPointerializer(item, data=request.data, partial=True)
+        serializer = ConfigPointSerializer(item, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -2933,3 +2947,58 @@ class FavoriByUserAPIListView(LoggingMixin, generics.CreateAPIView):
         items = Favori.objects.filter(user__slug=slug).order_by('-pk')
         serializer = FavoriGetSerializer(items,many=True)
         return Response(serializer.data)
+
+
+
+
+
+
+# import json
+# import hashlib
+# import base64
+
+
+# def parse_signed_request(signed_request):
+#     encoded_sig, payload = signed_request.split('.', 1)
+#     secret = "f624a959f54af2ae56b43c9f7601ba2b"  # Use your app secret here
+
+#     # Decode the data
+#     sig = base64_url_decode(encoded_sig)
+#     data = json.loads(base64_url_decode(payload).decode('utf-8'))
+
+#     # Confirm the signature
+#     expected_sig = hashlib.sha256(payload.encode('utf-8') + secret).digest()
+#     if sig != expected_sig:
+#         print('Bad Signed JSON signature!')
+#         return None
+
+#     return data
+
+
+# def base64_url_decode(input):
+#     input += '=' * ((4 - len(input) % 4) % 4)
+#     return base64.urlsafe_b64decode(input.encode('utf-8')).decode('utf-8')
+
+
+# class TestAPIListView(LoggingMixin, generics.RetrieveAPIView):
+#     queryset = ConfigPoint.objects.all()
+#     serializer_class = ConfigPointSerializer
+
+#     def get(self, request, format=None):
+
+#         # Mocking the POST request with signed_request
+#         signed_request = 'je teste mon app. Par contre il me faudrait les acces.'
+
+#         data = parse_signed_request(signed_request)
+#         user_id = data['user_id']
+
+#         # Start data deletion
+#         status_url = 'http://127.0.0.1:8000/api/deletion?id=abc123'  # URL to track the deletion
+#         confirmation_code = 'abc123'  # unique code for the deletion request
+
+#         response_data = {
+#             'url': status_url,
+#             'confirmation_code': confirmation_code
+#         }
+
+#         print(json.dumps(response_data))
