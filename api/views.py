@@ -1055,7 +1055,7 @@ class AdminUserAPIListView(LoggingMixin, generics.CreateAPIView):
                                     |Q(email__icontains=search)
                                     |Q(telephone__icontains=search)
                                     )
-            return KgPagination.get_response(limit,items,request,AdminUserSerializer)
+            return KgPagination.get_response(limit,items,request,UserGetSerializer)
         else:
             return Response({"message": "Unauthorized action"}, status=403)
 
@@ -2987,7 +2987,7 @@ class FavoriByUserAPIListView(LoggingMixin, generics.CreateAPIView):
 #     def get(self, request, format=None):
 
 #         # Mocking the POST request with signed_request
-#         signed_request = 'je teste mon app. Par contre il me faudrait les acces.'
+#         signed_request = '238fsdfsd.oijdoifjsidf899'
 
 #         data = parse_signed_request(signed_request)
 #         user_id = data['user_id']
