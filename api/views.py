@@ -2953,52 +2953,52 @@ class FavoriByUserAPIListView(LoggingMixin, generics.CreateAPIView):
 
 
 
-import json
-import hashlib
-import base64
+# import json
+# import hashlib
+# import base64
 
 
-def parse_signed_request(signed_request):
-    encoded_sig, payload = signed_request.split('.', 1)
-    secret = "f624a959f54af2ae56b43c9f7601ba2b"  # Use your app secret here
+# def parse_signed_request(signed_request):
+#     encoded_sig, payload = signed_request.split('.', 1)
+#     secret = "f624a959f54af2ae56b43c9f7601ba2b"  # Use your app secret here
 
-    # Decode the data
-    sig = base64_url_decode(encoded_sig)
-    data = json.loads(base64_url_decode(payload).decode('utf-8'))
+#     # Decode the data
+#     sig = base64_url_decode(encoded_sig)
+#     data = json.loads(base64_url_decode(payload).decode('utf-8'))
 
-    # Confirm the signature
-    expected_sig = hashlib.sha256(payload.encode('utf-8') + secret).digest()
-    if sig != expected_sig:
-        print('Bad Signed JSON signature!')
-        return None
+#     # Confirm the signature
+#     expected_sig = hashlib.sha256(payload.encode('utf-8') + secret).digest()
+#     if sig != expected_sig:
+#         print('Bad Signed JSON signature!')
+#         return None
 
-    return data
-
-
-def base64_url_decode(input):
-    input += '=' * ((4 - len(input) % 4) % 4)
-    return base64.urlsafe_b64decode(input.encode('utf-8')).decode('utf-8')
+#     return data
 
 
-class TestAPIListView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = ConfigPoint.objects.all()
-    serializer_class = ConfigPointSerializer
+# def base64_url_decode(input):
+#     input += '=' * ((4 - len(input) % 4) % 4)
+#     return base64.urlsafe_b64decode(input.encode('utf-8')).decode('utf-8')
 
-    def get(self, request, format=None):
 
-        # Mocking the POST request with signed_request
-        signed_request = 'je teste mon app. Par contre il me faudrait les acces.'
+# class TestAPIListView(LoggingMixin, generics.RetrieveAPIView):
+#     queryset = ConfigPoint.objects.all()
+#     serializer_class = ConfigPointSerializer
 
-        data = parse_signed_request(signed_request)
-        user_id = data['user_id']
+#     def get(self, request, format=None):
 
-        # Start data deletion
-        status_url = 'http://127.0.0.1:8000/api/deletion?id=abc123'  # URL to track the deletion
-        confirmation_code = 'abc123'  # unique code for the deletion request
+#         # Mocking the POST request with signed_request
+#         signed_request = 'je teste mon app. Par contre il me faudrait les acces.'
 
-        response_data = {
-            'url': status_url,
-            'confirmation_code': confirmation_code
-        }
+#         data = parse_signed_request(signed_request)
+#         user_id = data['user_id']
 
-        print(json.dumps(response_data))
+#         # Start data deletion
+#         status_url = 'http://127.0.0.1:8000/api/deletion?id=abc123'  # URL to track the deletion
+#         confirmation_code = 'abc123'  # unique code for the deletion request
+
+#         response_data = {
+#             'url': status_url,
+#             'confirmation_code': confirmation_code
+#         }
+
+#         print(json.dumps(response_data))
