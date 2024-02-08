@@ -8,7 +8,7 @@ urlpatterns = [
   url(r'^auth/verify-token', verify_jwt_token),
   url(r'^auth/refresh-token', refresh_jwt_token),
   url(r'^auth/login/$', views.LoginView.as_view()),
-  url(r'^auth/register/$', views.UserRegisterAPIView.as_view()),
+#   url(r'^auth/register/$', views.UserRegisterAPIView.as_view()),
   url(r'^auth/request-password-reset/$',
       views.PasswordResetRequestView.as_view()),
   url(r'^auth/reset-password/$', views.PasswordResetView.as_view()),
@@ -117,4 +117,5 @@ urlpatterns = [
  
   url(r'^config_points/$', views.ConfigPointAPIListView.as_view()),
   url(r'^config_points/(?P<slug>[\w\-]+)/$', views.ConfigPointAPIView.as_view()),
+  
 ]

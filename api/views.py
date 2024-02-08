@@ -543,7 +543,7 @@ class VendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VENDEUR)
+        items = User.objects.filter(user_type=VENDEUR).order_by('-pk')
         limit = self.request.query_params.get('limit')
         search = self.request.query_params.get('q')
         if search:
@@ -595,7 +595,7 @@ class VisiteurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=False)
+        items = User.objects.filter(user_type=USER, bloquer=False)
         return Response(UserGetSerializer(items, many=True).data)
 
 
@@ -604,8 +604,22 @@ class VisiteurAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=False)
+        items = User.objects.filter(user_type=USER).order_by('-pk')  
         limit = self.request.query_params.get('limit')
+        search = self.request.query_params.get('q')
+        if search:
+            search_terms = search.split()
+            nom_conditions = [Q(Q(nom__icontains=term)|Q(prenom__icontains=term)) for term in search_terms]
+            phone_conditions = [Q(phone__icontains=term) for term in search_terms]
+            email_conditions = [Q(email__icontains=term) for term in search_terms]
+            nom_filter = reduce(and_, nom_conditions)
+            phone_filter = reduce(and_, phone_conditions)
+            email_filter = reduce(and_, email_conditions)
+            items = items.filter(
+                nom_filter |
+                phone_filter |
+                email_filter 
+            )
         return KgPagination.get_response(limit,items,request,UserGetSerializer)
 
 
@@ -614,7 +628,7 @@ class VisiteurBlockedAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=True)
+        items = User.objects.filter(user_type=USER, bloquer=True)
         limit = self.request.query_params.get('limit')
         return KgPagination.get_response(limit,items,request,UserGetSerializer)
 
@@ -624,7 +638,7 @@ class VisiteurBlockedMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, format=None):
-        items = User.objects.filter(user_type=VISITEUR, bloquer=True)
+        items = User.objects.filter(user_type=USER, bloquer=True)
         return Response(UserGetSerializer(items, many=True).data)
 
 
@@ -2874,79 +2888,3 @@ class ConfigPointAPIView(LoggingMixin, generics.RetrieveAPIView):
             return Response(status=404)
         item.delete()
         return Response(status=204)
-
-
-import json
-import hashlib
-import base64
-
-
-def parse_signed_request(signed_request):
-    encoded_sig, payload = signed_request.split('.', 1)
-    secret = b'appsecret'  # Use your app secret here
-
-    # Decode the data
-    sig = base64_url_decode(encoded_sig)
-    data = json.loads(base64_url_decode(payload).decode('utf-8'))
-
-    # Confirm the signature
-    expected_sig = hashlib.sha256(payload.encode('utf-8') + secret).digest()
-    if sig != expected_sig:
-        print('Bad Signed JSON signature!')
-        return None
-
-    return data
-
-
-def base64_url_decode(input):
-    input += '=' * ((4 - len(input) % 4) % 4)
-    return base64.urlsafe_b64decode(input.encode('utf-8')).decode('utf-8')
-
-
-class ConfigPointAPIView(LoggingMixin, generics.RetrieveAPIView):
-    queryset = ConfigPoint.objects.all()
-    serializer_class = ConfigPointSerializer
-
-    def get(self, request, format=None):
-
-        # Mocking the POST request with signed_request
-        signed_request = '<signed_request_here>'
-
-        data = parse_signed_request(signed_request)
-        user_id = data['user_id']
-
-        # Start data deletion
-        status_url = 'https://www.your_website.com/deletion?id=abc123'  # URL to track the deletion
-        confirmation_code = 'abc123'  # unique code for the deletion request
-
-        response_data = {
-            'url': status_url,
-            'confirmation_code': confirmation_code
-        }
-
-        print(json.dumps(response_data))
-
-
-# from django.http import JsonResponse
-
-# def deletion_request_callback(request):
-#     if request.method == 'POST':
-#         signed_request = request.POST.get('signed_request')
-#         if signed_request:
-#             data = parse_signed_request(signed_request)
-#             user_id = data.get('user_id')
-#             # Logic to handle deletion request
-#             status_url = 'https://www.<your_website>.com/deletion?id=abc123'  # URL to track the deletion
-#             confirmation_code = 'abc123'  # unique code for the deletion request
-
-#             response_data = {
-#                 'url': status_url,
-#                 'confirmation_code': confirmation_code
-#             }
-#             return JsonResponse(response_data)
-#         else:
-#             return JsonResponse({'error': 'Signed request not found'}, status=400)
-#     else:
-#         return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
-
-# path('facebook/deletion_callback/', deletion_request_callback, name='deletion_request_callback'),
