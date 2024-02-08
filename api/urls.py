@@ -118,4 +118,6 @@ urlpatterns = [
   url(r'^config_points/$', views.ConfigPointAPIListView.as_view()),
   url(r'^config_points/(?P<slug>[\w\-]+)/$', views.ConfigPointAPIView.as_view()),
   
+  
+#   url(r'^test/$', views.TestAPIListView.as_view()),
 ]
