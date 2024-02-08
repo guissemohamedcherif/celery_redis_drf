@@ -2874,3 +2874,62 @@ class ConfigPointAPIView(LoggingMixin, generics.RetrieveAPIView):
             return Response(status=404)
         item.delete()
         return Response(status=204)
+    
+
+class FavoriAPIView(LoggingMixin, generics.CreateAPIView):
+    queryset = Favori.objects.all()
+    serializer_class = FavoriSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = Favori.objects.get(slug=slug)
+            serializer = FavoriSerializer(item)
+            return Response(serializer.data)
+        except Favori.DoesFavorixist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = Favori.objects.get(slug=slug)
+        except Favori.DoesFavorixist:
+            return Response(status=404)
+        serializer = FavoriSerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+        
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = Favori.objects.get(slug=slug)
+        except Favori.DoesFavorixist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
+
+class FavoriAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Favori.objects.all()
+    serializer_class = FavoriSerializer
+
+    def get(self, request, format=None):
+        items = Favori.objects.order_by('pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request,FavoriGetSerializer)
+    
+
+    def post(self, request, format=None):
+        serializer = FavoriSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class FavoriByUserAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Favori.objects.all()
+    serializer_class = FavoriSerializer
+
+    def get(self, request,slug, format=None):
+        items = Favori.objects.filter(user__slug=slug).order_by('-pk')
+        serializer = FavoriGetSerializer(items,many=True)
+        return Response(serializer.data)
