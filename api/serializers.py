@@ -70,7 +70,7 @@ class VisiteurRegisterSerializer(ModelSerializer):
         user = self.Meta.model(**validated_data)
         user.set_password(validated_data['password'])
         user.is_active = True
-        user.user_type = VISITEUR
+        user.user_type = USER
         user.save()
         return user
 

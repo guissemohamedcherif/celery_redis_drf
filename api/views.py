@@ -1046,7 +1046,7 @@ class AdminUserAPIListView(LoggingMixin, generics.CreateAPIView):
     def get(self, request, format=None):
         if (request.user.user_type == ADMIN or request.user.is_superuser or
            request.user.user_type == SUPERADMIN):
-            items = AdminUser.objects.exclude(user_type=ADMIN).order_by('-pk')
+            items = User.objects.filter(user_type=ADMIN).order_by('-pk')
             limit = self.request.query_params.get('limit')
             search = self.request.query_params.get('q')
             if search:
