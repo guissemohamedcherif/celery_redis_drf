@@ -122,6 +122,6 @@ urlpatterns = [
   url(r'^favoris/(?P<slug>[\w\-]+)/$', views.FavoriAPIView.as_view()),
   url(r'^favoris/(?P<slug>[\w\-]+)/user/$', views.FavoriByUserAPIListView.as_view()),
 
-#   url(r'^test/$', views.TestAPIListView.as_view()),
+  url(r'^test/$', views.TestAPIListView.as_view()),
 
 ]
