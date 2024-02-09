@@ -2899,13 +2899,13 @@ class FavoriAPIView(LoggingMixin, generics.CreateAPIView):
             item = Favori.objects.get(slug=slug)
             serializer = FavoriSerializer(item)
             return Response(serializer.data)
-        except Favori.DoesFavorixist:
+        except Favori.DoesNotExist:
             return Response(status=404)
 
     def put(self, request, slug, format=None):
         try:
             item = Favori.objects.get(slug=slug)
-        except Favori.DoesFavorixist:
+        except Favori.DoesNotExist:
             return Response(status=404)
         serializer = FavoriSerializer(item, data=request.data, partial=True)
         if serializer.is_valid():
@@ -2921,6 +2921,7 @@ class FavoriAPIView(LoggingMixin, generics.CreateAPIView):
             return Response(status=404)
         item.delete()
         return Response(status=204)
+
 
 class FavoriAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Favori.objects.all()
@@ -2939,6 +2940,7 @@ class FavoriAPIListView(LoggingMixin, generics.CreateAPIView):
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
+
 class FavoriByUserAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Favori.objects.all()
     serializer_class = FavoriSerializer
@@ -2949,56 +2951,80 @@ class FavoriByUserAPIListView(LoggingMixin, generics.CreateAPIView):
         return Response(serializer.data)
 
 
+class ProjetAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Projet.objects.all()
+    serializer_class = ProjetSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = Projet.objects.get(slug=slug)
+            serializer = ProjetSerializer(item)
+            return Response(serializer.data)
+        except Projet.DoesNotExist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = Projet.objects.get(slug=slug)
+        except Projet.DoesNotExist:
+            return Response(status=404)
+        serializer = ProjetSerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+        
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = Projet.objects.get(slug=slug)
+        except Projet.DoesFavorixist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
 
 
+class ProjetAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Projet.objects.all()
+    serializer_class = ProjetSerializer
+
+    def get(self, request, format=None):
+        items = Projet.objects.order_by('pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request, ProjetGetSerializer)
+    
+
+    def post(self, request, format=None):
+        serializer = ProjetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
 
-# import json
-# import hashlib
-# import base64
+class ProjetMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Projet.objects.all()
+    serializer_class = ProjetSerializer
+
+    def get(self, request, slug, format=None):
+        items = Projet.objects.filter(categorie__slug=slug).order_by('-pk')
+        return Response(ProjetGetSerializer(items, many=True).data)
 
 
-# def parse_signed_request(signed_request):
-#     encoded_sig, payload = signed_request.split('.', 1)
-#     secret = "f624a959f54af2ae56b43c9f7601ba2b"  # Use your app secret here
+class ProjetByCategorieAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Projet.objects.all()
+    serializer_class = ProjetSerializer
 
-#     # Decode the data
-#     sig = base64_url_decode(encoded_sig)
-#     data = json.loads(base64_url_decode(payload).decode('utf-8'))
-
-#     # Confirm the signature
-#     expected_sig = hashlib.sha256(payload.encode('utf-8') + secret).digest()
-#     if sig != expected_sig:
-#         print('Bad Signed JSON signature!')
-#         return None
-
-#     return data
+    def get(self, request, slug, format=None):
+        items = Projet.objects.filter(categorie__slug=slug).order_by('-pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request, ProjetGetSerializer)
 
 
-# def base64_url_decode(input):
-#     input += '=' * ((4 - len(input) % 4) % 4)
-#     return base64.urlsafe_b64decode(input.encode('utf-8')).decode('utf-8')
+class ProjetByCategorieMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+    queryset = Projet.objects.all()
+    serializer_class = ProjetSerializer
 
-
-# class TestAPIListView(LoggingMixin, generics.RetrieveAPIView):
-#     queryset = ConfigPoint.objects.all()
-#     serializer_class = ConfigPointSerializer
-
-#     def get(self, request, format=None):
-
-#         # Mocking the POST request with signed_request
-#         signed_request = '238fsdfsd.oijdoifjsidf899'
-
-#         data = parse_signed_request(signed_request)
-#         user_id = data['user_id']
-
-#         # Start data deletion
-#         status_url = 'http://127.0.0.1:8000/api/deletion?id=abc123'  # URL to track the deletion
-#         confirmation_code = 'abc123'  # unique code for the deletion request
-
-#         response_data = {
-#             'url': status_url,
-#             'confirmation_code': confirmation_code
-#         }
-
-#         print(json.dumps(response_data))
+    def get(self, request, slug, format=None):
+        items = Projet.objects.filter(categorie__slug=slug).order_by('-pk')
+        return Response(ProjetGetSerializer(items, many=True).data)

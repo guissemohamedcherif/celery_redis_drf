@@ -564,3 +564,17 @@ class Favori(models.Model):
         unique_together = ('user', 'produit')
     def __str__(self):
         return f'<Favori: {self.pk},user: {self.user}, produit: {self.produit}>'
+
+
+class Projet(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    nom = models.CharField(max_length=500)
+    description = models.TextField(blank=True, null=True)
+    video = models.CharField(max_length=1000, blank=True, null=True)
+    file = models.FileField(blank=True, null=True)
+    categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE, related_name='projets')
+    montant = models.DecimalField(max_digits=50,decimal_places=2, default=0.0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'<Projet: {self.nom}, montant: {self.montant}>'

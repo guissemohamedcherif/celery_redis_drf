@@ -478,3 +478,16 @@ class FavoriGetSerializer(ModelSerializer):
     class Meta:
         model = Favori
         fields = '__all__'
+
+
+
+class ProjetSerializer(ModelSerializer):
+    class Meta:
+        model = Projet
+        fields = '__all__'
+
+class ProjetGetSerializer(ModelSerializer):
+    categorie = CategorieSerializer()
+    class Meta:
+        model = Projet
+        fields = '__all__'
