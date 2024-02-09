@@ -122,6 +122,9 @@ urlpatterns = [
   url(r'^favoris/(?P<slug>[\w\-]+)/$', views.FavoriAPIView.as_view()),
   url(r'^favoris/(?P<slug>[\w\-]+)/user/$', views.FavoriByUserAPIListView.as_view()),
 
-#   url(r'^test/$', views.TestAPIListView.as_view()),
-
+  url(r'^projets/$', views.ProjetAPIListView.as_view()),
+  url(r'^projets/(?P<slug>[\w\-]+)/$', views.ProjetAPIView.as_view()),
+  url(r'^mobile/projets/$', views.ProjetMobileAPIListView.as_view()),
+  url(r'^categorie/(?P<slug>[\w\-]+)/projets/$', views.ProjetByCategorieAPIListView.as_view()),
+  url(r'^mobile/categorie/(?P<slug>[\w\-]+)/projets/$', views.ProjetByCategorieMobileAPIListView.as_view()),
 ]
