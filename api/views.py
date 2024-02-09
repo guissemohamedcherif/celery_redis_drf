@@ -3006,8 +3006,8 @@ class ProjetMobileAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Projet.objects.all()
     serializer_class = ProjetSerializer
 
-    def get(self, request, slug, format=None):
-        items = Projet.objects.filter(categorie__slug=slug).order_by('-pk')
+    def get(self, request, format=None):
+        items = Projet.objects.order_by('-pk')
         return Response(ProjetGetSerializer(items, many=True).data)
 
 
