@@ -2477,9 +2477,7 @@ class AchatVoucherByUserAPIListView(LoggingMixin, generics.RetrieveAPIView):
     def get(self, request,slug, format=None):
         items = AchatVoucher.objects.filter(user__slug=slug).order_by('-pk')
         return Response(AchatVoucherGetSerializer(items, many=True).data)
-    
 
- 
         
 class AchatVoucherMobileAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = AchatVoucher.objects.all()
@@ -3063,6 +3061,11 @@ class SharingBySenderAPIListView(LoggingMixin, generics.RetrieveAPIView):
         limit = self.request.query_params.get('limit')
         device = self.request.query_params.get('device')
         receiver = self.request.query_params.get('receiver')
+        q = self.request.query_params.get('q')
+        if q:
+            items = items.filter(Q(sender__prenom__icontains=q) | Q(sender__nom__icontains=q) |
+                                 Q(receiver__prenom__icontains=q) | Q(receiver__nom__icontains=q) |
+                                 Q(sender__phone__icontains=q) | Q(receiver__phone__icontains=q))
         if receiver:
             items = items.filter(receiver=receiver)
         if device:
@@ -3080,6 +3083,11 @@ class SharingByReceiverAPIListView(LoggingMixin, generics.RetrieveAPIView):
         limit = self.request.query_params.get('limit')
         device = self.request.query_params.get('device')
         sender = self.request.query_params.get('sender')
+        q = self.request.query_params.get('q')
+        if q:
+            items = items.filter(Q(sender__prenom__icontains=q) | Q(sender__nom__icontains=q) |
+                                 Q(receiver__prenom__icontains=q) | Q(receiver__nom__icontains=q) |
+                                 Q(sender__phone__icontains=q) | Q(receiver__phone__icontains=q))
         if sender:
             items = items.filter(sender=sender)
         if device:
