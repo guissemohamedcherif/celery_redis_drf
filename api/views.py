@@ -3036,20 +3036,27 @@ class SharingPointAPIView(LoggingMixin, generics.CreateAPIView):
 
     def post(self, request, format=None):
         serializer = SharingSerializer(data=request.data)
-        if 'points' in request.data and request.data['points']:
-            nbre_points = int(request.data['points'])
-            if 'sender' in request.data and request.data['sender']:
-                sender = User.objects.get(id=request.data['sender'])
-                if sender.points < nbre_points:
-                    return Response({"message": "Vous ne disposez pas d'assez de points pour le partage."}, status=400)
-        if serializer.is_valid():
-            sharing = serializer.save()
-            sharing.receiver.points += sharing.points
-            sharing.sender.points -= sharing.points
-            sharing.sender.save()
-            sharing.receiver.save()
-            return Response(SharingGetSerializer(sharing).data, status=201)
-        return Response(serializer.errors, status=400)
+        if request.user.user_type == SUPERADMIN or request.user.user_type == ADMIN:
+            if serializer.is_valid():
+                sharing = serializer.save()
+                return Response(SharingGetSerializer(sharing).data, status=201)
+            else:
+                return Response(serializer.errors, status=400)
+        else:
+            if 'points' in request.data and request.data['points']:
+                nbre_points = int(request.data['points'])
+                if 'sender' in request.data and request.data['sender']:
+                    sender = User.objects.get(id=request.data['sender'])
+                    if sender.points < nbre_points:
+                        return Response({"message": "Vous ne disposez pas d'assez de points pour le partage."}, status=400)
+            if serializer.is_valid():
+                sharing = serializer.save()
+                sharing.receiver.points += sharing.points
+                sharing.sender.points -= sharing.points
+                sharing.sender.save()
+                sharing.receiver.save()
+                return Response(SharingGetSerializer(sharing).data, status=201)
+            return Response(serializer.errors, status=400)
 
 
 class SharingBySenderAPIListView(LoggingMixin, generics.RetrieveAPIView):
