@@ -3039,6 +3039,9 @@ class SharingPointAPIView(LoggingMixin, generics.CreateAPIView):
         if request.user.user_type == SUPERADMIN or request.user.user_type == ADMIN:
             if serializer.is_valid():
                 sharing = serializer.save()
+                content = f"Vous venez de bénéficier de {sharing.points} offert(s)."
+                Notification.objects.create(receiver=sharing.receiver, content=content,
+                                            notif_type=SHARING, data=serializer.data)
                 return Response(SharingGetSerializer(sharing).data, status=201)
             else:
                 return Response(serializer.errors, status=400)
@@ -3055,6 +3058,9 @@ class SharingPointAPIView(LoggingMixin, generics.CreateAPIView):
                 sharing.sender.points -= sharing.points
                 sharing.sender.save()
                 sharing.receiver.save()
+                content = f"Vous venez de recevoir {sharing.points} de la part de {sharing.sender.prenom} {sharing.sender.nom}."
+                Notification.objects.create(receiver=sharing.receiver, content=content,
+                                            notif_type=SHARING, data=serializer.data)
                 return Response(SharingGetSerializer(sharing).data, status=201)
             return Response(serializer.errors, status=400)
 
