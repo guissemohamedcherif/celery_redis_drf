@@ -3039,6 +3039,8 @@ class SharingPointAPIView(LoggingMixin, generics.CreateAPIView):
         if request.user.user_type == SUPERADMIN or request.user.user_type == ADMIN:
             if serializer.is_valid():
                 sharing = serializer.save()
+                sharing.receiver.points += sharing.points
+                sharing.receiver.save()
                 content = f"Vous venez de bénéficier de {sharing.points} offert(s)."
                 Notification.objects.create(receiver=sharing.receiver, content=content,
                                             notif_type=SHARING, data=serializer.data)
