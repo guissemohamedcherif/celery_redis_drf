@@ -3002,7 +3002,7 @@ class ProjetAPIListView(LoggingMixin, generics.CreateAPIView):
         return Response(serializer.errors, status=400)
 
 
-class ProjetMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+class ProjetMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Projet.objects.all()
     serializer_class = ProjetSerializer
 
@@ -3011,7 +3011,7 @@ class ProjetMobileAPIListView(LoggingMixin, generics.CreateAPIView):
         return Response(ProjetGetSerializer(items, many=True).data)
 
 
-class ProjetByCategorieAPIListView(LoggingMixin, generics.CreateAPIView):
+class ProjetByCategorieAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Projet.objects.all()
     serializer_class = ProjetSerializer
 
@@ -3021,10 +3021,68 @@ class ProjetByCategorieAPIListView(LoggingMixin, generics.CreateAPIView):
         return KgPagination.get_response(limit,items,request, ProjetGetSerializer)
 
 
-class ProjetByCategorieMobileAPIListView(LoggingMixin, generics.CreateAPIView):
+class ProjetByCategorieMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     queryset = Projet.objects.all()
     serializer_class = ProjetSerializer
 
     def get(self, request, slug, format=None):
         items = Projet.objects.filter(categorie__slug=slug).order_by('-pk')
         return Response(ProjetGetSerializer(items, many=True).data)
+
+
+
+class SharingPointAPIView(LoggingMixin, generics.CreateAPIView):
+    queryset = Sharing.objects.all()
+    serializer_class = SharingSerializer
+    
+
+    def post(self, request, format=None):
+        serializer = SharingSerializer(data=request.data)
+        if 'points' in request.data and request.data['points']:
+            nbre_points = int(request.data['points'])
+            if 'sender' in request.data and request.data['sender']:
+                sender = User.objects.get(id=request.data['sender'])
+                if sender.points < nbre_points:
+                    return Response({"message": "Vous ne disposez pas d'assez de points pour le partage."}, status=400)
+        if serializer.is_valid():
+            sharing = serializer.save()
+            sharing.receiver.points += sharing.points
+            sharing.sender.points -= sharing.points
+            sharing.sender.save()
+            sharing.receiver.save()
+            return Response(SharingGetSerializer(sharing).data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+class SharingBySenderAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Sharing.objects.all()
+    serializer_class = SharingSerializer
+
+    def get(self, request, slug, format=None):
+        items = Sharing.objects.filter(sender__slug=slug).order_by('-pk')
+        limit = self.request.query_params.get('limit')
+        device = self.request.query_params.get('device')
+        receiver = self.request.query_params.get('receiver')
+        if receiver:
+            items = items.filter(receiver=receiver)
+        if device:
+            return Response(SharingGetSerializer(items, many=True).data)
+        else:
+            return KgPagination.get_response(limit,items,request, SharingGetSerializer)
+
+
+class SharingByReceiverAPIListView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Sharing.objects.all()
+    serializer_class = SharingSerializer
+
+    def get(self, request, slug, format=None):
+        items = Sharing.objects.filter(receiver__slug=slug).order_by('-pk')
+        limit = self.request.query_params.get('limit')
+        device = self.request.query_params.get('device')
+        sender = self.request.query_params.get('sender')
+        if sender:
+            items = items.filter(sender=sender)
+        if device:
+            return Response(SharingGetSerializer(items, many=True).data)
+        else:
+            return KgPagination.get_response(limit,items,request, SharingGetSerializer)

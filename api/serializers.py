@@ -491,3 +491,17 @@ class ProjetGetSerializer(ModelSerializer):
     class Meta:
         model = Projet
         fields = '__all__'
+
+
+class SharingSerializer(ModelSerializer):
+    class Meta:
+        model = Sharing
+        fields = '__all__'
+
+
+class SharingGetSerializer(ModelSerializer):
+    sender = UserSerializer()
+    receiver = UserSerializer()
+    class Meta:
+        model = Sharing
+        fields = '__all__'
