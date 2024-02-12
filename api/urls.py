@@ -127,4 +127,8 @@ urlpatterns = [
   url(r'^mobile/projets/$', views.ProjetMobileAPIListView.as_view()),
   url(r'^categorie/(?P<slug>[\w\-]+)/projets/$', views.ProjetByCategorieAPIListView.as_view()),
   url(r'^mobile/categorie/(?P<slug>[\w\-]+)/projets/$', views.ProjetByCategorieMobileAPIListView.as_view()),
+
+  url(r'^sharings/$', views.SharingPointAPIView.as_view()),
+  url(r'^sender/(?P<slug>[\w\-]+)/sharings/$', views.SharingBySenderAPIListView.as_view()),
+  url(r'^receiver/(?P<slug>[\w\-]+)/sharings/$', views.SharingByReceiverAPIListView.as_view()),
 ]

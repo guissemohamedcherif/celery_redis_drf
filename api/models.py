@@ -578,3 +578,14 @@ class Projet(models.Model):
     
     def __str__(self):
         return f'<Projet: {self.nom}, montant: {self.montant}>'
+
+
+class Sharing(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    points = models.PositiveIntegerField(default=0)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='senders')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receivers')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'<Sharing: {self.pk}, points: {self.points}>'
