@@ -101,9 +101,11 @@ CONTACT_STATUT = (
 
 ACHAT_VOUCHER = 'achat_voucher'
 COMMANDE = 'commande'
+SHARING = 'sharing'
 NOTIF_TYPE = (
     (ACHAT_VOUCHER, ACHAT_VOUCHER),
-    (COMMANDE, COMMANDE)
+    (COMMANDE, COMMANDE),
+    (SHARING, SHARING)
 )
 
 
