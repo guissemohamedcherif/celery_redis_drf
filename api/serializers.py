@@ -437,8 +437,9 @@ class OrderSerializer(ModelSerializer):
 
 
 class OrderGetSerializer(ModelSerializer):
-    cart = CartSerializer()
+    cart = CartGetSerializer()
     user = UserSerializer()
+   
     class Meta:
         model = Order
         fields = '__all__'
