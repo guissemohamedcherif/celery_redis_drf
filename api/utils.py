@@ -6,7 +6,7 @@ import re
 from django.http import HttpResponse
 from django.template.loader import get_template
 # from xhtml2pdf import pisa
-import qrcode
+# import qrcode
 import base64
 import requests
 import random

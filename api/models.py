@@ -449,6 +449,7 @@ class Produit(models.Model):
     prix_afficher = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
     categorie = models.ForeignKey(Categorie,on_delete=models.CASCADE)
     couverture = models.ImageField(null=True,blank=True)
+    is_archived = models.BooleanField(default=False)
     images = models.ManyToManyField(Image,blank=True,default=[])
     tags = JSONField(default=dict, blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_PRODUIT,
