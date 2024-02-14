@@ -2915,7 +2915,7 @@ class FavoriAPIView(LoggingMixin, generics.CreateAPIView):
     def delete(self, request, slug, format=None):
         try:
             item = Favori.objects.get(slug=slug)
-        except Favori.DoesFavorixist:
+        except Favori.DoesNotExist:
             return Response(status=404)
         item.delete()
         return Response(status=204)
@@ -2976,7 +2976,7 @@ class ProjetAPIView(LoggingMixin, generics.RetrieveAPIView):
     def delete(self, request, slug, format=None):
         try:
             item = Projet.objects.get(slug=slug)
-        except Projet.DoesFavorixist:
+        except Projet.DoesNotExist:
             return Response(status=404)
         item.delete()
         return Response(status=204)
