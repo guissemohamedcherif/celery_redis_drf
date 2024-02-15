@@ -526,6 +526,7 @@ class Cart(models.Model):
     def clear_cart(self):
         self.items.set([])
         self.total=0
+        self.total_points=0
         self.save()
 
 
@@ -535,6 +536,7 @@ class Order(models.Model):
     statut = models.CharField(max_length=120,choices=ORDER_STATUS,default=EN_COURS)    
     user = models.ForeignKey(User,on_delete=models.CASCADE, related_name='orders')
     total = models.DecimalField(max_digits=50,decimal_places=2)
+    total_points = models.PositiveIntegerField(default=0)
     code_commande = models.CharField(max_length=100,default=Utils.get_order_code)
     moyen_paiement = models.CharField(max_length=50, choices=MOYEN_PAIEMENT)
     paid = models.BooleanField(default=False)

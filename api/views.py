@@ -32,7 +32,7 @@ import locale,re
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from backend.settings import APP_NAME
-from api.order import add_to_cart
+from api.order import add_to_cart, add_item_to_order
 from api.images import get_images
 from functools import reduce
 from operator import or_,and_
@@ -3109,3 +3109,53 @@ class SharingByReceiverAPIListView(LoggingMixin, generics.RetrieveAPIView):
             return Response(SharingGetSerializer(items, many=True).data)
         else:
             return KgPagination.get_response(limit,items,request, SharingGetSerializer)
+
+
+class OrderAddAPIListView(generics.CreateAPIView):
+    permission_classes = ()
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    
+    def notify_user_commande(self, sujet, contenu, to, order):
+        contenu = contenu
+        subject = sujet
+        template_src = 'mail_notification.html'
+        name = f"{to.prenom} {to.nom}"
+        context = {
+            'email': to.email,
+            "name": name,
+            'settings': settings,
+            "id":"false",
+            "contenu":contenu,
+            "year":timezone.now().year
+        }
+        notify.send_email(subject, to.email, template_src, context)
+        Notification.objects.create(receiver=to, data=OrderSerializer(order).data, 
+                                    content=contenu, notif_type=COMMANDE)
+
+    def post(self, request, format=None):
+        self.data = request.data.copy()
+        
+        items = None
+        user = None
+        cart = None
+        if 'user' in request.data and request.data['user']:
+            user = User.objects.get(id=request.data['user'])
+        if 'item_list' in request.data and request.data['item_list'] and user:
+            items = literal_eval(request.data['item_list'])
+            cart = add_item_to_order(user, items)
+            if cart:
+                self.data['cart'] = cart.id
+                self.data['total'] = cart.total
+                self.data['total_points'] = cart.total_points
+        serializer = OrderSerializer(data=self.data)
+        if serializer.is_valid():
+            order = serializer.save()
+            response = Response(serializer.data, status=201)
+            sujet = "Nouvelle commande"
+            contenu = f"Votre commande {order.code_commande} est en cours de traitement"
+            to = order.user
+            response._resource_closers.append(self.notify_user_commande(sujet, contenu, to, order))
+            return response
+        else:
+            return Response(serializer.errors, status=400)
