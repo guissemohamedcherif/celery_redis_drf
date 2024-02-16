@@ -461,12 +461,12 @@ class Produit(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-    def save(self, *args, **kwargs):
-        cfg = ConfigPoint.objects.filter(is_active=True).last()
-        if cfg and self.points and self.prix:
-            self.prix_afficher = (self.points * cfg.prix) / cfg.points
-            self.discount = self.prix - self.prix_afficher
-        super(Produit, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     cfg = ConfigPoint.objects.filter(is_active=True).last()
+    #     if cfg and self.points and self.prix:
+    #         self.prix_afficher = (self.points * cfg.prix) / cfg.points
+    #         self.discount = self.prix - self.prix_afficher
+    #     super(Produit, self).save(*args, **kwargs)
     
     def __str__(self):
         return f'<Produit: {self.pk},nom: {self.nom}>'

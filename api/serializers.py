@@ -424,7 +424,7 @@ class CartSerializer(ModelSerializer):
 
 class CartGetSerializer(ModelSerializer):
     user = UserSerializer()
-    items = CartItemSerializer(many=True)
+    items = CartItemGetSerializer(many=True)
     class Meta:
         model = Cart
         fields = '__all__'
