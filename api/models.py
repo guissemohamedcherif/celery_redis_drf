@@ -446,7 +446,6 @@ class Produit(models.Model):
     quantite = models.IntegerField(default=0)
     points = models.IntegerField(default=0)
     discount = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
-    prix_afficher = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
     categorie = models.ForeignKey(Categorie,on_delete=models.CASCADE)
     couverture = models.ImageField(null=True,blank=True)
     is_archived = models.BooleanField(default=False)
@@ -503,6 +502,7 @@ class CartItem(models.Model):
     slug = models.SlugField(default=uuid.uuid1,editable=False)
     quantite = models.PositiveIntegerField(default=0)
     prix = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    points = models.PositiveIntegerField(default=0)
     produit = models.ForeignKey(Produit, on_delete=models.CASCADE)
     cart = models.ForeignKey('Cart', on_delete=models.CASCADE)  # Assuming you have a User model for authentication
     created_at = models.DateTimeField(auto_now_add=True)

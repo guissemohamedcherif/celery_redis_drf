@@ -107,6 +107,7 @@ urlpatterns = [
   url(r'^orders/$', views.OrderAPIListView.as_view()),
   url(r'^order/add/$', views.OrderAddAPIListView.as_view()),
   url(r'^orders/(?P<slug>[\w\-]+)/$', views.OrderAPIView.as_view()),
+  url(r'^order_detail/(?P<slug>[\w\-]+)/$', views.OrderDetailAPIView.as_view()),
   url(r'^user/(?P<slug>[\w\-]+)/canceled_orders/$', views.CanceledOrderByUserAPIListView.as_view()),
   url(r'^user/(?P<slug>[\w\-]+)/orders/$', views.OrderByUserAPIListView.as_view()),
   url(r'^user/(?P<slug>[\w\-]+)/canceled_orders_mobile/$', views.CanceledOrderByUserMobileAPIListView.as_view()),

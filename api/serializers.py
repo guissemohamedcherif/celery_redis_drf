@@ -410,7 +410,7 @@ class CartItemSerializer(ModelSerializer):
 
 
 class CartItemGetSerializer(ModelSerializer):
-    produit = ProduitSerializer()
+    produit = ProduitGetSerializer()
     class Meta:
         model = CartItem
         fields = '__all__'
