@@ -3178,3 +3178,66 @@ class OrderAddAPIListView(generics.CreateAPIView):
             return response
         else:
             return Response(serializer.errors, status=400)
+
+
+class VendeurAdminDetailAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request,slug, format=None):
+        produits = Produit.objects.filter(vendeur__slug=slug).order_by('-pk')
+        return Response({
+            "nbre_produits": produits.count()
+        })
+
+
+class MessageAccueilAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = MessageAccueil.objects.all()
+    serializer_class = MessageAccueilSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = MessageAccueil.objects.get(slug=slug)
+            serializer = MessageAccueilSerializer(item)
+            return Response(serializer.data)
+        except MessageAccueil.DoesNotExist:
+            return Response(status=404)
+
+    def put(self, request, slug, format=None):
+        try:
+            item = MessageAccueil.objects.get(slug=slug)
+        except MessageAccueil.DoesNotExist:
+            return Response(status=404)
+        serializer = MessageAccueilSerializer(item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return TranslatedErrorResponse(serializer.errors, status=400)
+        
+
+    def delete(self, request, slug, format=None):
+        try:
+            item = MessageAccueil.objects.get(slug=slug)
+        except MessageAccueil.DoesNotExist:
+            return Response(status=404)
+        item.delete()
+        return Response(status=204)
+
+
+class MessageAccueilAPIListView(LoggingMixin, generics.CreateAPIView):
+    permission_classes = ()
+    queryset = MessageAccueil.objects.all()
+    serializer_class = MessageAccueilSerializer
+
+    def get(self, request, format=None):
+        items = MessageAccueil.objects.order_by('-pk')
+        limit = self.request.query_params.get('limit')
+        return KgPagination.get_response(limit,items,request, MessageAccueilSerializer)
+    
+
+    def post(self, request, format=None):
+        serializer = MessageAccueilSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)

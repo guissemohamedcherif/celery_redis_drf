@@ -133,4 +133,10 @@ urlpatterns = [
   url(r'^sharings/$', views.SharingPointAPIView.as_view()),
   url(r'^sender/(?P<slug>[\w\-]+)/sharings/$', views.SharingBySenderAPIListView.as_view()),
   url(r'^receiver/(?P<slug>[\w\-]+)/sharings/$', views.SharingByReceiverAPIListView.as_view()),
+  
+  url(r'^vendeur/admin/(?P<slug>[\w\-]+)/$', views.VendeurAdminDetailAPIView.as_view()),
+  
+  url(r'^message_accueil/$', views.MessageAccueilAPIListView.as_view()),
+  url(r'^message_accueil/(?P<slug>[\w\-]+)/$', views.MessageAccueilAPIView.as_view()),
+
 ]
