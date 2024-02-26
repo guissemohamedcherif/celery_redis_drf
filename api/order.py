@@ -25,13 +25,14 @@ def add_item_to_order(user, list_item):
     for el in list_item:
         produit = Produit.objects.get(id=el.get('produit'))
         if produit.quantite >= int(el.get('quantite')):
-            total = produit.prix_afficher * int(el.get('quantite'))
+            total = produit.discount * int(el.get('quantite'))
             points = produit.points * int(el.get('quantite'))
             cartItemSerializer = CartItemSerializer(
                 data={
                     "quantite": el.get('quantite'),
-                    "prix": produit.prix_afficher,
+                    "prix": total,
                     "produit": produit.id,
+                    "points": points,
                     "cart": cart.id,
                     })
             if cartItemSerializer.is_valid():
@@ -40,5 +41,7 @@ def add_item_to_order(user, list_item):
                 cart.total_points += points
                 cart.save()
                 cart.items.add(cartItemSerializer.data['id'])
+                produit.quantite -= int(el.get('quantite'))
+                produit.save()
     if cart:
         return cart

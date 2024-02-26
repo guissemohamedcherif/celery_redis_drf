@@ -2702,6 +2702,21 @@ class OrderAPIView(LoggingMixin, generics.RetrieveAPIView):
         return Response(status=204)
 
 
+class OrderDetailAPIView(LoggingMixin, generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def get(self, request, slug, format=None):
+        try:
+            item = Order.objects.get(slug=slug)
+            vn = "0f4aac2c-6fa0-49a2-a3f0-c036883ea2b9"
+            # Response(OrderDetailSerializer(items, many=True, ).data)
+            serializer = OrderDetailSerializer(item, context={"vendeur":vn})
+            return Response(serializer.data)
+        except Order.DoesNotExist:
+            return Response(status=404)
+
+
 class OrderAPIListView(LoggingMixin, generics.CreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -2800,7 +2815,9 @@ class OrderPaymentAPIView(LoggingMixin, generics.RetrieveAPIView):
                 cart_items_ids = order.cart.items.all().values_list('id', flat=True)
                 cart_items = CartItem.objects.filter(pk__in=cart_items_ids)
                 for cart in cart_items:
-                    saving += cart.produit.discount
+                    tot_prix = int(cart.quantite) * cart.produit.prix
+                    save = tot_prix - cart.prix
+                    saving += save
             order.paid = True
             order.save()
             Saving.objects.create(order=order, total=saving)
@@ -2833,7 +2850,9 @@ class OrderByVendeurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = OrderSerializer
 
     def get(self, request, slug, format=None):
-        items = Order.objects.filter(user__slug=slug, paid=True).order_by('-pk')
+        produits_ids = Produit.objects.filter(vendeur__slug=slug).values_list('id')
+        carts_ids = CartItem.objects.filter(produit__id__in=produits_ids).values_list("cart", flat=True)
+        items = Order.objects.filter(cart__id__in=carts_ids, paid=True)
         statut = self.request.query_params.get('statut')
         if statut:
             items = items.filter(statut=statut)
@@ -3139,6 +3158,7 @@ class OrderAddAPIListView(generics.CreateAPIView):
         items = None
         user = None
         cart = None
+        vendeurs = []
         if 'user' in request.data and request.data['user']:
             user = User.objects.get(id=request.data['user'])
         if 'item_list' in request.data and request.data['item_list'] and user:
