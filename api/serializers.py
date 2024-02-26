@@ -506,3 +506,9 @@ class SharingGetSerializer(ModelSerializer):
     class Meta:
         model = Sharing
         fields = '__all__'
+
+
+class MessageAccueilSerializer(ModelSerializer):
+    class Meta:
+        model = MessageAccueil
+        fields = '__all__'

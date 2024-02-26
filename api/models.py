@@ -594,3 +594,12 @@ class Sharing(models.Model):
     
     def __str__(self):
         return f'<Sharing: {self.pk}, points: {self.points}>'
+
+
+class MessageAccueil(models.Model):
+    slug = models.SlugField(default=uuid.uuid1,editable=False)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'<MessageAccueil: {self.pk}, content: {self.content}>'
