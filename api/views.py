@@ -3158,7 +3158,6 @@ class OrderAddAPIListView(generics.CreateAPIView):
         items = None
         user = None
         cart = None
-        vendeurs = []
         if 'user' in request.data and request.data['user']:
             user = User.objects.get(id=request.data['user'])
         if 'item_list' in request.data and request.data['item_list'] and user:
