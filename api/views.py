@@ -109,7 +109,7 @@ class LoginView(LoggingMixin, generics.CreateAPIView):
                     if search_item.exists():
                         item = search_item.last()
                         if item.bloquer == True:
-                            return Response({"message": f"Votre compte a été bloqué. Pour plus d'informations, veuillez contacter l'équipe de {APP_NAME}."}, status=400)
+                            return Response({"message": f"Your account has been blocked. For more informations, please contact {APP_NAME} team."}, status=400)
                         if item and item.email != email:
                             email = item.email
                             request.data['email'] = email
@@ -119,24 +119,24 @@ class LoginView(LoggingMixin, generics.CreateAPIView):
                         token = jwt_encode_handler(jwt_payload_handler(user))
                         item = User.objects.get(pk=user.id)
                         if item.user_type == DELETED:
-                            return Response({"message": f"Votre compte a été supprimé. Pour plus d'informations, veuillez contacter l'équipe de {APP_NAME}."}, status=400)
+                            return Response({"message": f"Your account has been deleted. For more informations, please contact {APP_NAME} team."}, status=400)
                         if item.is_archive:
-                            return Response({"message": f"Votre compte a été archivé. Pour plus d'informations, veuillez contacter l'équipe de {APP_NAME}."}, status=400)
+                            return Response({"message": f"Your account has been archived. For more informations, please contact {APP_NAME} team."}, status=400)
                         if not item.is_active:
                             return Response({
                                 "status": "failure",
-                                "message": "Ton compte n'a pas encore activé par l'admin."},
+                                "message": "Your account has not yet been activated."},
                                 status=401)
                         return Response({
                             'token': token,
                             'data': UserSerializer(item).data
                         }, status=200)
                     else:
-                        return Response({"message": "Vos identifiants sont incorrects"}, status=400)
+                        return Response({"message": "Incorrect credentials"}, status=400)
                 except User.DoesNotExist:
-                    return Response({"status": "failure", "message": "Ce compte n'existe pas. Veuillez-vous enregistrer"}, status=400)
-            return Response({"message": "Votre mot de passe est requis"}, status=401)
-        return Response({"message": "Votre email est requis"}, status=401)
+                    return Response({"status": "failure", "message": "This account does not exist. Please register"}, status=400)
+            return Response({"message": "Password required"}, status=401)
+        return Response({"message": "Email required"}, status=401)
 
 
 class UserDeletedAPIListView(LoggingMixin, generics.RetrieveAPIView):
@@ -182,7 +182,7 @@ class UserAPIView(LoggingMixin, generics.CreateAPIView):
                     serializer = AdminUserGetSerializer(admin)
                 return Response(serializer.data)
             else:
-                return Response({"message": "Accès interdit"}, status=401)
+                return Response({"message": "Unauthorized action"}, status=401)
         except User.DoesNotExist:
             return Response(status=404)
 
@@ -201,7 +201,7 @@ class UserAPIView(LoggingMixin, generics.CreateAPIView):
                     item.save()
                     return Response(UserGetSerializer(item).data)
                 return TranslatedErrorResponse(serializer.errors, status=400)
-            return Response({"message": "Accès interdit"}, status=401)
+            return Response({"message": "Unauthorized action"}, status=401)
         except User.DoesNotExist:
             return Response(status=404)
 
@@ -212,7 +212,7 @@ class UserAPIView(LoggingMixin, generics.CreateAPIView):
                 self.handle_user_deletion(item)
                 # item.delete(force_policy=HARD_DELETE)
                 return Response(status=204)
-            return Response({"message": "Accès interdit"}, status=401)
+            return Response({"message": "Unauthorized action"}, status=401)
         except User.DoesNotExist:
             return Response(status=404)
     
@@ -252,7 +252,7 @@ class UserReactivationAPIView(LoggingMixin, generics.CreateAPIView):
                 item.is_active = True
                 item.is_archive = False
                 item.save()
-                subject = "COMPTE RÉACTIVÉ", 
+                subject = "REACTIVATED ACCOUNT", 
                 to = item.email
                 template_src = 'mail_notification_user.html',
                 contexte= {
@@ -261,9 +261,9 @@ class UserReactivationAPIView(LoggingMixin, generics.CreateAPIView):
                 }
                 notify.send_email(subject, to,template_src , contexte)
                 return Response({"status": "success", "message": "user successfully reactived "},status=200)
-            return  Response({"message":"Un autre compte avec cet email existe déja.Voulez-vous changer le modifier. "},status=400)
+            return  Response({"message":"This email already exists."},status=400)
         except User.DoesNotExist:
-            return  Response({"message":"Un autre compte associé à cet email existe déja.Voulez-vous changer le modifier. "},status=400)  
+            return  Response({"message":"This email already exists."},status=400)  
     
     def put(self, request, email, format=None):
         try:
@@ -278,13 +278,13 @@ class UserReactivationAPIView(LoggingMixin, generics.CreateAPIView):
                     item.is_active = True
                     item.is_archive = False
                     item.save()
-                    subject, to = "COMPTE RÉACTIVÉ", item.email
+                    subject, to = "REACTIVATED ACCOUNT", item.email
                     notify.send_email(subject, to, 'mail_reactivation_user.html',{'item': item, 'settings':settings})
                     serializer.save()
                     return Response(serializer.data)
                 return TranslatedErrorResponse(serializer.errors, status=400)
-            return Response({"message":"Un autre compte à associé cet email existe déja"},status=400)
-        return Response({"message":"L'email est obligatoire"},status=400)
+            return Response({"message":"This email already exists."},status=400)
+        return Response({"message":"Email required"},status=400)
 
 class AccountActivationAPIView(LoggingMixin, generics.CreateAPIView):
     queryset = User.objects.all()
@@ -2252,7 +2252,7 @@ class ProduitVisiteurAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = ProduitSerializer
 
     def get(self, request, format=None):
-        items = Produit.objects.filter(status=PUBLISHED).order_by('-pk')
+        items = Produit.objects.filter(vendeur__bloquer=False, status=PUBLISHED).order_by('-pk')
         limit = self.request.query_params.get('limit')
         q = self.request.query_params.get('q')
         category_id = self.request.query_params.get('category_id')
@@ -2268,7 +2268,7 @@ class ProduitAPIListView(LoggingMixin, generics.CreateAPIView):
     serializer_class = ProduitSerializer
 
     def get(self, request, format=None):
-        items = Produit.objects.order_by('-pk')
+        items = Produit.objects.filter(vendeur__bloquer=False).order_by('-pk')
         limit = self.request.query_params.get('limit')
         search = self.request.query_params.get('q')
         if search:
@@ -2307,7 +2307,7 @@ class ProduitMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):
     serializer_class = ProduitSerializer
 
     def get(self, request, format=None):
-        items = Produit.objects.filter(status=PUBLISHED).order_by('-pk')
+        items = Produit.objects.filter(vendeur__bloquer=False, status=PUBLISHED).order_by('-pk')
         limit = self.request.query_params.get('limit')
         search = self.request.query_params.get('q')
         if search:
@@ -2841,8 +2841,7 @@ class OrderByVendeurAPIListView(LoggingMixin, generics.RetrieveAPIView):
         statut = self.request.query_params.get('statut')
         if statut:
             items = items.filter(statut=statut)
-        return KgPagination.get_response(limit,items,request,OrderDetailSerializer(context={"vendeur":slug}))
-        # return Response(OrderDetailSerializer(items, many=True, context={"vendeur":slug}).data)
+        return KgPagination.get_response(limit,items,request,OrderGetSerializer)
 
 
 class OrderByVendeurMobileAPIListView(LoggingMixin, generics.RetrieveAPIView):

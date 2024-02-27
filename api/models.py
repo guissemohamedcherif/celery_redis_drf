@@ -64,9 +64,11 @@ ADMIN_TYPE = (
 )
 
 CGU = 'CGU'
+ACCUEIL = 'ACCUEIL'
 
 CONDITION_TYPE = (
     (CGU, CGU),
+    (ACCUEIL, ACCUEIL)
 )
 
 
@@ -330,8 +332,7 @@ class Newsletter(models.Model):
 class Condition(models.Model):
     slug = models.SlugField(default=uuid.uuid1)
     text = models.TextField()
-    type = models.CharField(max_length=50,
-                            choices=CONDITION_TYPE, default=CGU)
+    type = models.CharField(max_length=50, choices=CONDITION_TYPE, default=CGU)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
