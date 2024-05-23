@@ -139,10 +139,9 @@ The api should now be running at http://127.0.0.1:8000/
 
 To run a celery worker:
 
-```  celery -A backend worker -l info
-```
+  celery -A backend worker -l info
+
 
 To run a celery beat:
 
-```  celery -A backend beat -l INFO
-```
+  celery -A backend beat -l INFO
