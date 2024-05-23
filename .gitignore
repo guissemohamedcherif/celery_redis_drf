@@ -9,7 +9,7 @@ db.sqlite3
 db.json
 mediafiles/
 .env
-migrations/*
+migrations/
 
 
 
