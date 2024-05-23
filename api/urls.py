@@ -7,7 +7,5 @@ urlpatterns = [
   re_path(r'^auth/register/$', views.UserRegisterAPIView.as_view()),
   re_path(r'^products/$', views.ProductAPIListView.as_view()),
   re_path(r'^products/(?P<slug>[\w\-]+)/$', views.ProductAPIView.as_view()),
-  # re_path(r'^script/vouchers/$', views.ScriptVoucherAPIListView.as_view()),
-  # re_path(r'^test_q/$', views.testCeleryQ.as_view()),
 
 ]

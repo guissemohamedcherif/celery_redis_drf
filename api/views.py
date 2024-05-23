@@ -10,10 +10,17 @@ from rest_framework import status
 from backend.settings import APP_NAME
 import time
 import re
+from django.db import connection
+from django.core.cache import cache
+from django.conf import settings
+import redis
+
 REGEX = os.environ.get("regex")
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+redis_instance = redis.StrictRedis(host='127.0.0.1', port=6379, db=1)
 
 
 class UserRegisterAPIView(generics.CreateAPIView):
@@ -94,6 +101,24 @@ class UserDetailAPIView(generics.RetrieveAPIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+
+def log_db_queries ( f ) :
+    def new_f ( * args , ** kwargs ) :
+        start_time = time.time()
+        res = f ( * args , ** kwargs )
+        print ( "\n\n" )
+        print ( "-"*80 )
+        print ( " TOTAL REQUEST : % s " % len ( connection.queries ))
+        for q in connection.queries :
+            print ("%s: %s\n" % (q["time"] , q["sql"]))
+        end_time = time.time ()
+        duration = end_time - start_time
+        print ('\n Total time: {:.3f} ms'.format(duration * 1000.0))
+        print ("-"*80)
+        return res
+    return new_f
+
+
 class ProductAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -131,9 +156,23 @@ class ProductAPIListView(generics.CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    @log_db_queries
     def get(self, request, format=None):
         items = Product.objects.order_by('-pk')
-        return Response(ProductSerializer(items, many=True).data)         
+        nom = request.GET.get('nom')
+        cache_key = 'name'
+        if nom:
+            cache_key = 'name' + nom
+        if cache_key in cache:
+            items = cache.get(cache_key)
+            return Response(ProductSerializer(items, many=True).data)
+        else:
+            if nom:
+                items = items.filter(nom__icontains=nom).order_by('-pk')
+            else:
+                items = items
+        cache.set(cache_key , items, timeout=3600)
+        return Response(ProductSerializer(items, many=True).data)       
 
     def post(self, request, format=None):
         serializer = ProductSerializer(data=request.data)
@@ -141,3 +180,5 @@ class ProductAPIListView(generics.CreateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
