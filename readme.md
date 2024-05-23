@@ -28,43 +28,20 @@
 <div align="center">
   <a href="https://github.com/VolkenoMakers/MYAPP-django"></a>
 
-  <h3 align="center">MYAPP DJANGO API</h3>
+  <h3 align="center">redis_celery_django_api</h3>
 
   <p align="center">
-    A project for hospitals and medical offices.
+    A small project to test Celery + Redis on django.
     <br />
   </p>
 </div>
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#deployments">Deployment</a></li>
-
-  </ol>
-</details>
 
 <!-- ABOUT THE PROJECT -->
 
 ## About The Project
 
-[![MYAPP][product-screenshot]](https://MYAPP-app.withvolkeno.com/)
-A project for hospitals and medical offices.
-
+Celery + Redis on django
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ### Built With
@@ -72,14 +49,20 @@ A project for hospitals and medical offices.
 This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
 
 - [Django](https://www.djangoproject.com/)
+- [djangorestframework](https://pypi.org/project/djangorestframework/)
 - [djangorestframework-jwt](https://jpadilla.github.io/django-rest-framework-jwt/)
-- [django-jazzmin](https://github.com/farridav/django-jazzmin)
-- [django-import-export](https://django-import-export.readthedocs.io/en/latest/)
-- [drf-generators](https://pypi.org/project/drf-generators/)
-- [exponent-server-sdk](https://github.com/expo-community/expo-server-sdk-python)
-- [Pillow](https://pillow.readthedocs.io/en/stable/)
-- [psycopg2-binary](https://pypi.org/project/psycopg2-binary/)
-- [Django-NGINX-GUNICORN](https://realpython.com/django-nginx-gunicorn/)
+- [django-cors-headers](https://pypi.org/project/django-cors-headers/)
+- [python-dotenv](https://pypi.org/project/dotenv-python/)
+- [python-dateutil](https://pypi.org/project/python-dateutil/)
+- [requests](https://pypi.org/project/requests/)
+- [redis](https://pypi.org/project/redis/)
+- [django-redis](https://pypi.org/project/django-redis/)
+- [celery](https://pypi.org/project/celery/)
+- [django-celery-results](https://pypi.org/project/django-celery-results/)
+- [django-celery-beat](https://pypi.org/project/django-celery-beat/)
+
+
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -151,58 +134,16 @@ The api should now be running at http://127.0.0.1:8000/
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
-## DEPLOYMENT
+## CELERY
+### This app comes with Celery.
 
-### 1. Configure nginx. Go sur  `/etc/nginx/sites-enabled/` and create a file named `MYAPP-django-dev.conf` and the configuration bellow:
-Ici c'est la configuration du nginx à mettre sur le serveur . Le fichier docker-compose.yml est déjà configuré et se trouve à la racine du projet.`5083` est le port dans le fichier dans l'environnement `dev`. En production au lieu  du port `5083`, utiliser le port `5084`
-
-```  server {
-       server_name  MYAPP-api.withvokeno.com www.MYAPP-api.withvokeno.com;
-       location / {
-       proxy_pass http://127.0.0.1:5083;
-       proxy_set_header Host $host;
-       proxy_set_header X-Real-IP $remote_addr;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $scheme;
-       client_max_body_size 1000M;
-       proxy_connect_timeout 300;
-       proxy_send_timeout 300;
-       proxy_read_timeout 300;
-       uwsgi_read_timeout 300;
-
-   }
-}
-```
-
-###  2. Install `docker-compose` on your server. Ici c'est au cas oû `docker-compose` ne serait pas isntallé.
-
-    a) sudo curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-
-    b). sudo chmod +x /usr/local/bin/docker-compose
-
-    c).  `docker-compose --version`
-
-###  3. Clone project and move on dev branch:
-Le fichier docker-compose.yml étant déjà configuré donc il faudra cloner le code source en éxécutant ces commandes et suivre les instructions après cette étape
-   1. `git clone https://github.com/VolkenoMakers/MYAPP-django`
-   2. `cd MYAPP-django`
-   3. `git checkout dev`
-
-### 4. Create file `.env` and copy content `.env.example` in your new file `.env`
-### 5. Run this command to build the project : `docker-compose -f docker-compose.prod.yml  up -d --build`
-### 6. Run test `docker-compose -f docker-compose.prod.yml exec -T web python manage.py test`
-### 7. Migrate db `docker-compose -f docker-compose.prod.yml exec -T web python manage.py migrate`
-### 8. Deploy css `docker-compose -f docker-compose.prod.yml exec -T web python manage.py collectstatic`
-### 9. Create admin superuser  `docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser`
+To run a celery worker:
+  ```sh
+  celery -A backend worker -l info
+  ```
 
 
-## VERSIONNING
-### DEV
-1. git tag -a dev-1.0 -m "Dev release 1.0"
-2. git push origin --tags
-### STAGING
-1. git tag -a staging-1.0 -m "Staging release 1.0"
-2. git push origin --tags
-### PRODUCTION
-1. git tag -a production-1.0 -m "Production release 1.0"
-2. git push origin --tags
+To run a celery beat:
+  ```sh
+  celery -A backend beat -l INFO
+  ```
