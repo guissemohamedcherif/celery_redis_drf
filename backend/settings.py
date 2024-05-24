@@ -229,8 +229,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'sauron.o2switch.net'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'masoul-api@volkeno-engineering.click'
-EMAIL_HOST_PASSWORD = 'QK4z&,p4PJ}P'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 
 # REDIS SETTINGS
 CACHES = {
