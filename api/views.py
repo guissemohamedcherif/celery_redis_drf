@@ -2,18 +2,17 @@ from rest_framework.response import Response
 from api.serializers import *
 from api.models import *
 from rest_framework import generics
-from api.notifications import Notif as notify
-from django.utils import timezone
 from django.contrib.auth import authenticate
 from rest_framework_jwt.settings import api_settings
 from rest_framework import status
-from backend.settings import APP_NAME
-import time
-import re
 from django.db import connection
 from django.core.cache import cache
 from django.conf import settings
+from api.tasks import mail_sender
+import time
+import re
 import redis
+
 
 REGEX = os.environ.get("regex")
 
@@ -47,6 +46,7 @@ class UserRegisterAPIView(generics.CreateAPIView):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             item = serializer.save()
+            mail_sender.delay(UserSerializer(item).data)
             return Response(UserSerializer(item).data, status=201)
         return Response(serializer.errors, status=400)
 
@@ -180,5 +180,3 @@ class ProductAPIListView(generics.CreateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-

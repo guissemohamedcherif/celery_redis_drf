@@ -43,12 +43,12 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     slug = models.UUIDField(default=uuid.uuid4, editable=False)
-    fist_name = models.CharField(max_length=500)
+    first_name = models.CharField(max_length=500)
     last_name = models.CharField(max_length=500)
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20, validators=[isnumbervalidator])
     is_active = models.BooleanField(('active'), default=True)
-    user_type = models.CharField(max_length=50, choices=USER_TYPES)
+    user_type = models.CharField(max_length=50, choices=USER_TYPES, default=USER)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

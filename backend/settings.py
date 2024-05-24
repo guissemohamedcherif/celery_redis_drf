@@ -45,8 +45,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'api',
-    # 'django_celery_results',
-    # 'django_celery_beat',
+    'django_celery_results',
+    'django_celery_beat',
 ]
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -92,9 +92,25 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    # }
+    
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+
+        'NAME': 'redis_test',
+
+        'USER': 'redis_test',
+
+        'PASSWORD': 'passer123',
+
+        'HOST': 'localhost',
+        # 'HOST': 'db',
+
+        'PORT': '5432',
     }
 }
 
@@ -213,8 +229,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'sauron.o2switch.net'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = 'masoul-api@volkeno-engineering.click'
+EMAIL_HOST_PASSWORD = 'QK4z&,p4PJ}P'
 
 # REDIS SETTINGS
 CACHES = {
@@ -226,3 +242,14 @@ CACHES = {
         }
     }
 }
+
+# CELERY SETTINGS
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_ACCEPT_CONTENT = {'application/json'}
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_RESULT_BACKEND = 'django-db'
+
+#BEAT SETTINGS
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
